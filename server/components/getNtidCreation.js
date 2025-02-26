@@ -3,8 +3,7 @@ import db from "../dbConnection/db.js";
 const getContract = async (req, res) => {
   const query = `
     SELECT 
-     *
-    FROM contract c
+     * from ntid_creation
     ORDER BY createdat DESC
   `;
   

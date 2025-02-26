@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const NtidCreation = () => {
-  const [rows, setRows] = useState([]);
+  const [mergedRows, setMergedRows] = useState([]);
   const [formData, setFormData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,10 +38,24 @@ const NtidCreation = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getcontract`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
-      setRows(data);
+      // Fetch data from both endpoints
+      const [contractResponse, ntidResponse] = await Promise.all([
+        fetch(`${process.env.REACT_APP_BASE_URL}/getcontract`),
+        fetch(`${process.env.REACT_APP_BASE_URL}/getntidcreation`),
+      ]);
+
+      if (!contractResponse.ok || !ntidResponse.ok) {
+        throw new Error("Failed to fetch data from one or more endpoints");
+      }
+
+      const contractData = await contractResponse.json();
+      const ntidData = await ntidResponse.json();
+
+      // Merge the two datasets
+      const mergedData = mergeData(contractData, ntidData);
+
+      // Update state with merged data
+      setMergedRows(mergedData);
     } catch (error) {
       console.error("Error fetching data:", error);
       alert("Failed to load data. Please refresh the page.");
@@ -49,6 +63,19 @@ const NtidCreation = () => {
       setIsLoading(false);
     }
   };
+
+  const mergeData = (contractData, ntidData) => {
+    const contractMap = new Map(contractData.map((row) => [row.phone, row]));
+    const ntidMap = new Map(ntidData.map((row) => [row.phone, row]));
+
+    const allPhones = new Set([...contractMap.keys(), ...ntidMap.keys()]);
+
+    return Array.from(allPhones).map((phone) => ({
+      ...contractMap.get(phone),
+      ...ntidMap.get(phone),
+    }));
+  };
+
 
   const handleInputChange = (e, phone) => {
     const { name, value } = e.target;
@@ -82,7 +109,7 @@ const NtidCreation = () => {
   
       if (result.status === 201) {
         // Update the rows state immediately
-        setRows((prevRows) =>
+        setMergedRows((prevRows) =>
           prevRows.map((r) =>
             r.phone === row.phone
               ? {
@@ -147,7 +174,7 @@ const NtidCreation = () => {
                   </tr >
                 </thead>
                 <tbody>
-                  {rows.map((row, index) => {
+                  {mergedRows.map((row, index) => {
                     const rowFormData = formData[row.phone] || {};
                     return (
                       <tr key={index} >
@@ -166,6 +193,7 @@ const NtidCreation = () => {
                               type="date"
                               name="ntid_created_on"
                               value={rowFormData.ntid_created_on || ''}
+                              style={{width: '150px'}}
                               onChange={(e) => handleInputChange(e, row.phone)}
                               className="form-control form-control-sm"
                             />
@@ -178,6 +206,7 @@ const NtidCreation = () => {
                             <input
                               type="text"
                               name="ntid"
+                              style={{width: '150px'}}
                               value={rowFormData.ntid || ''}
                               onChange={(e) => handleInputChange(e, row.phone)}
                               className="form-control form-control-sm"
@@ -191,6 +220,7 @@ const NtidCreation = () => {
                           {!row.t_mobile_email ? (
                             <input
                               type="email"
+                              style={{width: '150px'}}
                               name="t_mobile_email"
                               value={rowFormData.t_mobile_email || ''}
                               onChange={(e) => handleInputChange(e, row.phone)}
@@ -206,6 +236,7 @@ const NtidCreation = () => {
                             <input
                               type="password"
                               name="temp_password"
+                              style={{width: '150px'}}
                               value={rowFormData.temp_password || ''}
                               onChange={(e) => handleInputChange(e, row.phone)}
                               className="form-control form-control-sm"
@@ -215,17 +246,18 @@ const NtidCreation = () => {
                             <span className="text-nowrap">{row.temp_password }</span>
                           )}
                         </td>
-                        <td className="text-center">
+                        <td className="text-center"  >
                           {!row.temp_password ? (
                             <button
                               className="btn btn-primary btn-sm"
+                              style={{width: '150px'}}
                               onClick={() => handleSubmit(row)}
                             >
-                              <Send className="me-1" size={14} />
+                              <Send className="me-1" size={14}  />
                               Assign
                             </button>
                           ) : (
-                            <span className="badge bg-success">
+                            <span className="badge bg-success" style={{width: '150px'}}>
                               <CheckCircle className="me-1" size={14} />
                               Assigned
                             </span>

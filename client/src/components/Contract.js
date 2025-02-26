@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Container, Table, Button } from "react-bootstrap";
 import { LiaFileContractSolid } from "react-icons/lia";
-
-
+import CustomAlert from "./CustomAlert";
 function Contract() {
-  const [rows, setRows] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rows, setRows] = useState([]); // Assigned contracts
+  const [savedRows, setSavedRows] = useState([]); // Unassigned contracts
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
   const [newRow, setNewRow] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     phone: "",
     email: "",
     market: "",
@@ -20,24 +21,31 @@ function Contract() {
     contract_sent_by: "",
     contract_signed_on: "",
     backout_status: "",
+    address: false,
     assigned: false,
   });
+  const [alertMessage, setAlertMessage] = useState("");
 
   useEffect(() => {
     fetchData();
   }, []);
+  const closeAlert = () => {
+    setAlertMessage("");
+  };
 
   const fetchData = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getcontract`);
-      if (!response.ok) {
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/getcontract`
+      );
+      if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
       const data = await response.json();
-      setRows(data);
+      setRows(data.filter((row) => row.assigned));
+      setSavedRows(data.filter((row) => !row.assigned));
     } catch (error) {
       console.error("Error fetching data:", error);
-      alert("Failed to load data. Please refresh the page.");
+      alert("Failed to load data. Please try again.");
     }
   };
 
@@ -46,42 +54,72 @@ function Contract() {
     setNewRow((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitAndAssign = async () => {
-    // Ensure all fields are filled out before submitting
-    const fieldsToValidate = { ...newRow };
-    delete fieldsToValidate.assigned;  // Exclude this field from validation
-    
-    // Check if any of the required fields are empty
-    if (Object.values(fieldsToValidate).some((field) => field === "")) {
-      alert("Please fill all fields");
-      return;
-    }
-  
-    // Set submitting state to true to disable the button and show the "Assigning..." text
+  const validateRow = (row) => {
+    return Object.keys(newRow)
+      .filter((field) => field !== "assigned")
+      .every((field) => row[field]?.trim() !== "");
+  };
+
+  const handleSubmitAndAssign = async (
+    action,
+    id = null,
+    updatedRow = null
+  ) => {
     setIsSubmitting(true);
-  
     try {
-      // Submit the data to the server
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/contract`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newRow, assigned: true }),  
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (
+        (action === "update" || action === "assign") &&
+        (!id || !updatedRow)
+      ) {
+        throw new Error("Missing contract ID or data for update/assign");
       }
-  
-      // Parse the server response
+
+      if (action === "assign" && !validateRow(updatedRow || newRow)) {
+        setAlertMessage(
+          "All fields must be filled before assigning. Please update the data."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      const endpoint =
+        action === "save"
+          ? "savecontract"
+          : action === "update"
+          ? `updatecontract/${id}`
+          : `assigncontract/${id}`;
+
+      const url = `${process.env.REACT_APP_BASE_URL}/${endpoint}`;
+      const payload =
+        action === "save" ? newRow : { ...updatedRow, id: undefined };
+
+      const response = await fetch(url, {
+        method: action === "save" ? "POST" : "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage =
+            errorData.error || `HTTP error! status: ${response.status}`;
+        } catch (e) {
+          errorMessage = `HTTP error! status: ${response.status}, response: ${errorText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
       const responseData = await response.json();
-  
-      if (responseData.status === 201) {
-        // Optimistically update the UI with the new row
-        setRows((prevRows) => [ { ...newRow, assigned: true },...prevRows]);
-  
-        // Reset the form
+      setAlertMessage(responseData.message);
+      // alert(responseData.message);
+
+      if (action === "save") {
         setNewRow({
-          name: "",
+          first_name: "",
+          last_name: "",
           phone: "",
           email: "",
           market: "",
@@ -94,99 +132,218 @@ function Contract() {
           contract_sent_by: "",
           contract_signed_on: "",
           backout_status: "",
+          address: false,
           assigned: false,
         });
-  
-        alert("Data submitted successfully!");
-      } else {
-        throw new Error(responseData.error || "Failed to submit data");
       }
+
+      await fetchData();
     } catch (error) {
-      console.error("Error submitting data:", error);
-      alert(`Failed to submit data: ${error.message}`);
+      console.error(`Error ${action}ing data:`, error);
+      alert(`Failed to ${action} data: ${error.message}`);
     } finally {
-      // Reset the submitting state to allow the button to be used again
       setIsSubmitting(false);
     }
   };
-  
-  
+
+  const handleEditField = (index, field, value) => {
+    const updatedRows = [...savedRows];
+    updatedRows[index] = { ...updatedRows[index], [field]: value };
+    setSavedRows(updatedRows);
+  };
+
+  const renderTableHeaders = () => {
+    return Object.keys(newRow).map((header) => (
+      <th
+        style={{ backgroundColor: "#E10174", color: "white" }}
+        className="text-nowrap"
+        key={header}
+      >
+        {header
+          .replace(/([A-Z])/g, " $1")
+          .replace(/_/g, " ")
+          .trim()}
+      </th>
+    ));
+  };
+
+  const renderNewContractForm = () => {
+    return (
+      <tr>
+        {Object.keys(newRow).map((field) => (
+          <td key={field} className="text-nowrap">
+            {field === "assigned" ? (
+              <Button
+                variant="primary"
+                onClick={() => handleSubmitAndAssign("save")}
+                size="sm"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : "Save"}
+              </Button>
+            ) : (
+              <input
+                type={
+                  [
+                    "date_of_joining",
+                    "contract_sent_date",
+                    "contract_signed_on",
+                  ].includes(field)
+                    ? "date"
+                    : "text"
+                }
+                name={field}
+                value={newRow[field]}
+                style={{ width: "150px" }}
+                onChange={handleInputChange}
+                className="form-control form-control-sm"
+                placeholder={`Enter ${field.replace(/_/g, " ")}`}
+              />
+            )}
+          </td>
+        ))}
+      </tr>
+    );
+  };
+
+  const renderSavedRows = () => {
+    return savedRows.map((row, index) => {
+      const hasNullFields = Object.keys(row).some(
+        (key) => !row[key] || row[key] === null
+      );
+      const isRowComplete = hasNullFields;
+
+      return (
+        <tr key={row.id || index}>
+          {Object.keys(newRow).map((field) => (
+            <td key={field} className="text-nowrap">
+              {field === "assigned" ? (
+                <>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      const cleanRow = { ...row };
+                      delete cleanRow.id;
+                      handleSubmitAndAssign("update", row.id, cleanRow);
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    Update
+                  </Button>
+                  {isRowComplete && !row.assigned && (
+                    <Button
+                      variant="success"
+                      size="sm"
+                      className="ms-2"
+                      onClick={() => {
+                        const cleanRow = { ...row };
+                        delete cleanRow.id;
+                        handleSubmitAndAssign("assign", row.id, {
+                          ...cleanRow,
+                          assigned: true,
+                        });
+                      }}
+                      disabled={isSubmitting}
+                    >
+                      Assign
+                    </Button>
+                  )}
+                </>
+              ) : row[field] ? (
+                <input
+                  type="text"
+                  name={field}
+                  value={row[field] || ""}
+                  placeholder={`Enter ${field.replace(/_/g, " ")}`}
+                  onChange={(e) =>
+                    handleEditField(index, field, e.target.value)
+                  }
+                  className="form-control form-control-sm"
+                  style={{ minWidth: "100px" }}
+                />
+              ) : (
+                <input
+                  type={
+                    [
+                      "date_of_joining",
+                      "contract_sent_date",
+                      "contract_signed_on",
+                    ].includes(field)
+                      ? "date"
+                      : "text"
+                  }
+                  name={field}
+                  value={row[field] || ""}
+                  placeholder={`Enter ${field.replace(/_/g, " ")}`}
+                  onChange={(e) =>
+                    handleEditField(index, field, e.target.value)
+                  }
+                  className="form-control form-control-sm"
+                  style={{ minWidth: "100px" }}
+                />
+              )}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  };
+
+  const renderAssignedRows = () => {
+    return rows.map((row) => (
+      <tr key={row.id}>
+        {Object.keys(newRow).map((field) => (
+          <td key={field} className="text-nowrap">
+            {field === "assigned" ? (
+              <Button variant="success" size="sm" disabled>
+                Assigned
+              </Button>
+            ) : (
+              row[field] || "-"
+            )}
+          </td>
+        ))}
+      </tr>
+    ));
+  };
 
   return (
     <div className="bg-white">
+      {alertMessage && (
+        <CustomAlert message={alertMessage} onClose={closeAlert} />
+      )}
       <Container fluid className="p-1">
         <div className="border shadow-sm">
-          <div className="p-1 border-bottom "  style={{ backgroundImage: "url('/contract.jpg')", 
-            width:'100%', height: "8rem", backgroundRepeat:'no-repeat', backgroundPosition: "center" }}>
-            <h1 className="m-0 text-white text-center mt-4">
-             <LiaFileContractSolid/> Contracts Sign
-            </h1>
+          <div
+            className="p-1 border-bottom"
+            style={{
+              backgroundImage: "url('/contract.jpg')",
+              width: "100%",
+              height: "8rem",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+            }}
+          >
+            <div className="d-flex flex-row align-items-center justify-content-between w-100 mt-5">
+              <h1 className="m-0 text-white fw-bolder text-center flex-grow-1">
+                <LiaFileContractSolid /> Contracts Sign
+              </h1>
+              <Button className="btn btn-warning text-white fw-bolder border bg-transparent me-5">
+                Add Document
+              </Button>
+            </div>
           </div>
           <div className="table-responsive">
-            <Table className="table-bordered mb-0" style={{ borderCollapse: "collapse" }}>
+            <Table className="table-bordered mb-0">
               <thead>
-                <tr>
-                  {Object.keys(newRow).map((header) => (
-                    <th
-                    style={{backgroundColor:"#E10174", color:"white"}}
-                     className="text-nowrap"
-                      key={header}
-                      // style={{ fontSize: "11px", padding: "2px" }}
-                    >
-                      {header.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim()}
-                    </th>
-                  ))}
-                </tr>
+                <tr>{renderTableHeaders()}</tr>
               </thead>
               <tbody>
-                <tr>
-                  {Object.keys(newRow).map((field) => (
-                    <td key={field} className="text-nowrap" >
-                      {field === "assigned" ? (
-                        <Button
-                          variant="primary"
-                          onClick={handleSubmitAndAssign}
-                          size="sm"
-                          style={{ fontSize: "11px"   }}
-                          disabled={isSubmitting}
-                          className="px-3"
-                        >
-                          {isSubmitting ? "Assigning..." : "Assign"}
-                        </Button>
-                      ) : (
-                        <input
-                          type={["date_of_joining", "contract_sent_date", "contract_signed_on"].includes(field) ? "date" : "text"}
-                          name={field}
-                          value={newRow[field]}
-                          onChange={handleInputChange}
-                          className="form-control form-control-sm"
-                          style={{ fontSize: "11px" }}
-                          disabled={isSubmitting}
-                        />
-                      )}
-                    </td>
-                  ))}
-                </tr>
-                {rows.map((row, index) => (
-                  <tr key={index}>
-                    {Object.keys(newRow).map((field) => (
-                      <td key={field}  className="text-nowrap">
-                        {field === "assigned" ? (
-                          <Button
-                            variant="success"
-                            size="sm"
-                            disabled
-                            style={{ fontSize: "11px" }}
-                          >
-                           Assigned
-                          </Button>
-                        ) : (
-                          row[field]
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                {renderNewContractForm()}
+                {renderSavedRows()}
+                {renderAssignedRows()}
               </tbody>
             </Table>
           </div>

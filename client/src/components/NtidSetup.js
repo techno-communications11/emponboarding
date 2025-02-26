@@ -151,8 +151,8 @@ function NtidSetup() {
                     <th style={{backgroundColor:'#E10174',color:'white'}}><FaKey className="me-1" /> NTID</th>
                     <th style={{backgroundColor:'#E10174',color:'white'}}><FaEnvelope className="me-1" /> Email</th>
                     <th style={{backgroundColor:'#E10174',color:'white'}}><FaLock className="me-1" /> Password</th>
-                    <th style={{backgroundColor:'#E10174',color:'white'}}><FaFingerprint className="me-1" /> YUBI Status</th>
-                    <th style={{backgroundColor:'#E10174',color:'white'}}><FaUserShield className="me-1" /> NTID Status</th>
+                    <th style={{backgroundColor:'#E10174',color:'white'}}><FaFingerprint className="me-1" /> YUBI key avilability</th>
+                    <th style={{backgroundColor:'#E10174',color:'white'}}><FaUserShield className="me-1" /> ID setup</th>
                     <th style={{backgroundColor:'#E10174',color:'white'}}><FaCalendarCheck className="me-1" /> Setup Date</th>
                     <th style={{backgroundColor:'#E10174',color:'white'}}><FaIdCard className="me-1" /> IDV Status</th>
                     <th style={{backgroundColor:'#E10174',color:'white'}}><FaFileAlt className="me-1" /> IDV Doc</th>
@@ -298,10 +298,10 @@ function NtidSetup() {
                         <td className="text-nowrap">
                           {item.ntid_setup_date === null ? (
                             <button
-                              className="btn btn-sm text-dark"
+                              className="btn btn-sm text-white bg-primary"
                               onClick={() => handleSubmit(item.phone, item.ntid)}
                             >
-                              <FaPaperPlane className="me-1" />
+                              <FaPaperPlane className="me-1 " />
                               Assign
                             </button>
                           ) : (
