@@ -30,10 +30,9 @@ const WeeklySchedule = () => {
 
         if (response.ok) {
           const data = await response.json(); // Parse response as JSON
-          data.map((x)=>{
+          data.forEach((x) => {
             setname(x.employee_name);
-            return;
-          })
+          });
           setDays(data);
         } else {
           console.error("Failed to fetch schedule:", response.statusText);
