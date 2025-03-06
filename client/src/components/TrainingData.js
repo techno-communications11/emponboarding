@@ -104,7 +104,10 @@ const TrainingData = () => {
                         <thead className="custom-header">
                                 <tr >
                                     <th className="text-nowrap" style={{ backgroundColor: "#E10174", color: "white" }}>
-                                        <UserCircle className="me-1" size={18} /> Name
+                                        <UserCircle className="me-1" size={18} /> first_name
+                                    </th>
+                                    <th className="text-nowrap" style={{ backgroundColor: "#E10174", color: "white" }}>
+                                        <UserCircle className="me-1" size={18} /> last_name
                                     </th>
                                     <th className="text-nowrap" style={{ backgroundColor: "#E10174", color: "white" }}>
                                         <Phone className="me-1" size={18} /> Phone
@@ -140,7 +143,8 @@ const TrainingData = () => {
                                 {trainingData.length > 0 ? (
                                     trainingData.map((data, index) => (
                                         <tr key={index}>
-                                            <td className="text-nowrap">{data.name}</td>
+                                            <td className="text-nowrap">{data.first_name}</td>
+                                            <td className="text-nowrap">{data.last_name}</td>
                                             <td className="text-nowrap">{data.phone}</td>
                                             <td className="text-nowrap">{data.market}</td>
                                             <td className="text-nowrap">{data.date_of_joining}</td>

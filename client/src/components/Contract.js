@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Container, Table, Button } from "react-bootstrap";
+import { Container, Table, Button, Badge } from "react-bootstrap";
 import { LiaFileContractSolid } from "react-icons/lia";
+import UploadDocument from "./UploadDocument";
+import Modal from "react-bootstrap/Modal";
 import CustomAlert from "./CustomAlert";
+
 function Contract() {
   const [rows, setRows] = useState([]); // Assigned contracts
   const [savedRows, setSavedRows] = useState([]); // Unassigned contracts
-  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [show, setShow] = useState(false);
+  const [editingField, setEditingField] = useState(null); // Track which field is being edited
+   const [email, setEmail] = useState("");
   const [newRow, setNewRow] = useState({
     first_name: "",
     last_name: "",
@@ -15,13 +21,14 @@ function Contract() {
     date_of_joining: "",
     mainstore: "",
     stores_to_be_assigned: "",
-    contract: "",
+    contract: "select",
     contract_sent_date: "",
     contract_sent_to: "",
     contract_sent_by: "",
     contract_signed_on: "",
-    backout_status: "",
+    backout_status: "select",
     address: false,
+    UploadDocument: false,
     assigned: false,
   });
   const [alertMessage, setAlertMessage] = useState("");
@@ -29,69 +36,100 @@ function Contract() {
   useEffect(() => {
     fetchData();
   }, []);
-  const closeAlert = () => {
-    setAlertMessage("");
-  };
+
+  const closeAlert = () => setAlertMessage("");
+  const handleClose = () => setShow(false);
+  const handleFile = () => setShow(true);
 
   const fetchData = async () => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/getcontract`
-      );
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getcontract`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       setRows(data.filter((row) => row.assigned));
       setSavedRows(data.filter((row) => !row.assigned));
     } catch (error) {
       console.error("Error fetching data:", error);
-      alert("Failed to load data. Please try again.");
+      setAlertMessage("Failed to load data. Please try again.");
     }
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewRow((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setNewRow((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const validateRow = (row) => {
-    return Object.keys(newRow)
-      .filter((field) => field !== "assigned")
-      .every((field) => row[field]?.trim() !== "");
+    const baseFields = [
+      "first_name",
+      "last_name",
+      "phone",
+      "email",
+      "market",
+      "date_of_joining",
+      "mainstore",
+      "stores_to_be_assigned",
+      "contract"
+    ];
+
+    const contractFields = [
+      "contract_sent_date",
+      "contract_sent_to",
+      "contract_sent_by",
+      "contract_signed_on"
+    ];
+
+    const baseValid = baseFields.every((field) => 
+      row[field]?.toString().trim() !== "" && 
+      (field !== "contract" || row[field] !== "select")
+    );
+
+    if (row.contract === "true") {
+      return baseValid && contractFields.every((field) => 
+        row[field]?.toString().trim() !== ""
+      );
+    }
+
+    return baseValid;
   };
 
-  const handleSubmitAndAssign = async (
-    action,
-    id = null,
-    updatedRow = null
-  ) => {
+  const handleSubmitAndAssign = async (action, id = null, updatedRow = null) => {
     setIsSubmitting(true);
     try {
-      if (
-        (action === "update" || action === "assign") &&
-        (!id || !updatedRow)
-      ) {
+      if ((action === "update" || action === "assign") && (!id || !updatedRow)) {
         throw new Error("Missing contract ID or data for update/assign");
       }
 
       if (action === "assign" && !validateRow(updatedRow || newRow)) {
         setAlertMessage(
-          "All fields must be filled before assigning. Please update the data."
+          (updatedRow?.contract === "true" || newRow.contract === "true")
+            ? "All fields up to Contract Signed On are required when Contract is Yes."
+            : "All fields up to Contract are required."
         );
-        setIsSubmitting(false);
         return;
       }
 
       const endpoint =
-        action === "save"
-          ? "savecontract"
-          : action === "update"
-          ? `updatecontract/${id}`
-          : `assigncontract/${id}`;
+        action === "save" ? "savecontract" :
+        action === "update" ? `updatecontract/${id}` :
+        `assigncontract/${id}`;
 
       const url = `${process.env.REACT_APP_BASE_URL}/${endpoint}`;
-      const payload =
-        action === "save" ? newRow : { ...updatedRow, id: undefined };
+      const payload = action === "save" 
+        ? { 
+            ...newRow, 
+            contract: newRow.contract === "true" ? true : newRow.contract === "false" ? false : newRow.contract,
+            backout_status: newRow.backout_status === "true" ? true : newRow.backout_status === "false" ? false : newRow.backout_status
+          } 
+        : { 
+            ...updatedRow, 
+            id: undefined,
+            contract: updatedRow.contract === "true" ? true : updatedRow.contract === "false" ? false : updatedRow.contract,
+            backout_status: updatedRow.backout_status === "true" ? true : updatedRow.backout_status === "false" ? false : updatedRow.backout_status
+          };
 
       const response = await fetch(url, {
         method: action === "save" ? "POST" : "PUT",
@@ -101,46 +139,26 @@ function Contract() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        let errorMessage;
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage =
-            errorData.error || `HTTP error! status: ${response.status}`;
-        } catch (e) {
-          errorMessage = `HTTP error! status: ${response.status}, response: ${errorText}`;
-        }
-        throw new Error(errorMessage);
+        throw new Error(errorText || `HTTP error! status: ${response.status}`);
       }
 
       const responseData = await response.json();
       setAlertMessage(responseData.message);
-      // alert(responseData.message);
 
       if (action === "save") {
         setNewRow({
-          first_name: "",
-          last_name: "",
-          phone: "",
-          email: "",
-          market: "",
-          date_of_joining: "",
-          mainstore: "",
-          stores_to_be_assigned: "",
-          contract: "",
-          contract_sent_date: "",
-          contract_sent_to: "",
-          contract_sent_by: "",
-          contract_signed_on: "",
-          backout_status: "",
-          address: false,
-          assigned: false,
+          first_name: "", last_name: "", phone: "", email: "", market: "",
+          date_of_joining: "", mainstore: "", stores_to_be_assigned: "",
+          contract: "select", contract_sent_date: "", contract_sent_to: "",
+          contract_sent_by: "", contract_signed_on: "", backout_status: "select",
+          address: false, UploadDocument: false, assigned: false,
         });
       }
 
       await fetchData();
     } catch (error) {
       console.error(`Error ${action}ing data:`, error);
-      alert(`Failed to ${action} data: ${error.message}`);
+      setAlertMessage(`Failed to ${action} data: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -148,8 +166,12 @@ function Contract() {
 
   const handleEditField = (index, field, value) => {
     const updatedRows = [...savedRows];
-    updatedRows[index] = { ...updatedRows[index], [field]: value };
+    updatedRows[index] = { 
+      ...updatedRows[index], 
+      [field]: typeof value === "boolean" ? value : value 
+    };
     setSavedRows(updatedRows);
+    setEditingField(null); // Exit edit mode after selection
   };
 
   const renderTableHeaders = () => {
@@ -159,10 +181,7 @@ function Contract() {
         className="text-nowrap"
         key={header}
       >
-        {header
-          .replace(/([A-Z])/g, " $1")
-          .replace(/_/g, " ")
-          .trim()}
+        {header.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim()}
       </th>
     ));
   };
@@ -181,17 +200,38 @@ function Contract() {
               >
                 {isSubmitting ? "Saving..." : "Save"}
               </Button>
+            ) : field === "contract" || field === "backout_status" ? (
+              <select
+                name={field}
+                value={newRow[field]}
+                onChange={handleInputChange}
+                className="form-control form-control-sm"
+                style={{ width: "150px" }}
+              >
+                <option value="select">Select</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            ) : field === "address" ? (
+              <input
+                className="text-center"
+                type="checkbox"
+                name={field}
+                checked={newRow[field]}
+                onChange={handleInputChange}
+              />
+            ) : field === "UploadDocument" ? (
+              <Button
+                onClick={handleFile}
+                className="btn btn-warning text-primary fw-bolder border-warning bg-transparent"
+                size="sm"
+              >
+                Add Document
+              </Button>
             ) : (
               <input
-                type={
-                  [
-                    "date_of_joining",
-                    "contract_sent_date",
-                    "contract_signed_on",
-                  ].includes(field)
-                    ? "date"
-                    : "text"
-                }
+                type={["date_of_joining", "contract_sent_date", "contract_signed_on"]
+                  .includes(field) ? "date" : "text"}
                 name={field}
                 value={newRow[field]}
                 style={{ width: "150px" }}
@@ -208,16 +248,21 @@ function Contract() {
 
   const renderSavedRows = () => {
     return savedRows.map((row, index) => {
-      const hasNullFields = Object.keys(row).some(
-        (key) => !row[key] || row[key] === null
-      );
-      const isRowComplete = hasNullFields;
-
+      const isRowComplete = validateRow(row);
+  
       return (
         <tr key={row.id || index}>
           {Object.keys(newRow).map((field) => (
             <td key={field} className="text-nowrap">
-              {field === "assigned" ? (
+              {field === "UploadDocument" ? (
+                <Button
+                  onClick={handleFile}
+                  className="btn btn-warning text-dark fw-bolder border bg-transparent"
+                  size="sm"
+                >
+                  Add Document
+                </Button>
+              ) : field === "assigned" ? (
                 <>
                   <Button
                     variant="primary"
@@ -231,7 +276,7 @@ function Contract() {
                   >
                     Update
                   </Button>
-                  {isRowComplete && !row.assigned && (
+                  {!row.assigned && isRowComplete && (
                     <Button
                       variant="success"
                       size="sm"
@@ -250,35 +295,78 @@ function Contract() {
                     </Button>
                   )}
                 </>
-              ) : row[field] ? (
+              ) : field === "contract" || field === "backout_status" ? (
+                editingField === `${index}-${field}` ? (
+                  <select
+                    name={field}
+                    value={row[field]?.toString() || "select"}
+                    onChange={(e) => handleEditField(index, field, e.target.value)}
+                    className="form-control form-control-sm"
+                    style={{ minWidth: "100px" }}
+                  >
+                    <option value="select">Select</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                ) : (
+                  row[field] === "select" || row[field] === "" || row[field] === null || row[field] === undefined ? (
+                    <select
+                      name={field}
+                      value={row[field]?.toString() || "select"}
+                      onChange={(e) => handleEditField(index, field, e.target.value)}
+                      className="form-control form-control-sm"
+                      style={{ minWidth: "100px" }}
+                    >
+                      <option value="select">Select</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  ) : (
+                    <Badge
+                      bg="transparent"
+                      className="py-2 px-5 ms-2 rounded-2 text-center text-black border"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setEditingField(`${index}-${field}`)}
+                    >
+                      { row[field]  ? "Yes" : "No"}
+                    </Badge>
+                  )
+                )
+              ) : field === "address" ? (
+                <input
+                  className="text-center"
+                  type="checkbox"
+                  name={field}
+                  checked={row[field] || false}
+                  onChange={(e) => handleEditField(index, field, e.target.checked)}
+                />
+              ) : ["date_of_joining", "contract_sent_date", "contract_signed_on"].includes(field) ? (
+                row[field] ? (
+                  <input
+                    type="text"
+                    name={field}
+                    value={row[field] || ""}
+                    onChange={(e) => handleEditField(index, field, e.target.value)}
+                    className="form-control form-control-sm"
+                    style={{ minWidth: "100px" }}
+                  />
+                ) : (
+                  <input
+                    type="date"
+                    name={field}
+                    value={row[field] || ""}
+                    onChange={(e) => handleEditField(index, field, e.target.value)}
+                    className="form-control form-control-sm"
+                    style={{ minWidth: "100px" }}
+                  />
+                )
+              ) : (
                 <input
                   type="text"
                   name={field}
                   value={row[field] || ""}
                   placeholder={`Enter ${field.replace(/_/g, " ")}`}
-                  onChange={(e) =>
-                    handleEditField(index, field, e.target.value)
-                  }
-                  className="form-control form-control-sm"
-                  style={{ minWidth: "100px" }}
-                />
-              ) : (
-                <input
-                  type={
-                    [
-                      "date_of_joining",
-                      "contract_sent_date",
-                      "contract_signed_on",
-                    ].includes(field)
-                      ? "date"
-                      : "text"
-                  }
-                  name={field}
-                  value={row[field] || ""}
-                  placeholder={`Enter ${field.replace(/_/g, " ")}`}
-                  onChange={(e) =>
-                    handleEditField(index, field, e.target.value)
-                  }
+                  onChange={(e) => handleEditField(index, field, e.target.value)}
                   className="form-control form-control-sm"
                   style={{ minWidth: "100px" }}
                 />
@@ -291,21 +379,45 @@ function Contract() {
   };
 
   const renderAssignedRows = () => {
-    return rows.map((row) => (
-      <tr key={row.id}>
-        {Object.keys(newRow).map((field) => (
-          <td key={field} className="text-nowrap">
-            {field === "assigned" ? (
-              <Button variant="success" size="sm" disabled>
-                Assigned
-              </Button>
-            ) : (
-              row[field] || "-"
-            )}
-          </td>
-        ))}
-      </tr>
-    ));
+    return rows.map((row) => {
+      // Optionally set email for the first row or a specific condition
+      if (!email && row.email) { // Example: Set email only if not already set
+        setEmail(row.email);
+        console.log(row.email, 'sent email');
+      }
+
+      return (
+        <tr key={row.id}>
+          {Object.keys(newRow).map((field) => (
+            <td key={field} className="text-nowrap text-center">
+              {field === "assigned" ? (
+                <Button variant="success" size="sm" disabled>
+                  Assigned
+                </Button>
+              ) : field === "UploadDocument" ? (
+                <Button
+                  onClick={handleFile}
+                  className="btn btn-warning text-dark fw-bolder border bg-transparent"
+                  size="sm"
+                >
+                  Add Document
+                </Button>
+              ) : field === "address" ? (
+                <input
+                  type="checkbox"
+                  checked={row[field] || false}
+                  disabled
+                />
+              ) : field === "contract" || field === "backout_status" ? (
+                row[field] ? "Yes" : "No"
+              ) : (
+                row[field] || "-"
+              )}
+            </td>
+          ))}
+        </tr>
+      );
+    });
   };
 
   return (
@@ -330,9 +442,6 @@ function Contract() {
               <h1 className="m-0 text-white fw-bolder text-center flex-grow-1">
                 <LiaFileContractSolid /> Contracts Sign
               </h1>
-              <Button className="btn btn-warning text-white fw-bolder border bg-transparent me-5">
-                Add Document
-              </Button>
             </div>
           </div>
           <div className="table-responsive">
@@ -348,6 +457,14 @@ function Contract() {
             </Table>
           </div>
         </div>
+        <Modal show={show} onHide={handleClose} size="md">
+  <Modal.Body>
+   
+      <UploadDocument email={email} />
+    
+  </Modal.Body>
+</Modal>
+
       </Container>
     </div>
   );

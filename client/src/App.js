@@ -13,6 +13,10 @@ import { jwtDecode } from "jwt-decode";
 import TrainingData from "./components/TrainingData.js";
 import AdminDashboard from "./components/AdminDashboard.js";
 import UserDashboard from "./components/UserDashboard.js";
+import Shedule from "./components/Shedule.js";
+import EmployeeHome from "./components/EmployeeHome.js";
+import DailyUpdates from "./components/DailyUpdates.js";
+import ViewTicket from "./components/ViewTicket.js";
 
 // Function to get role from token
 const getRoleFromToken = () => {
@@ -37,10 +41,35 @@ const AppContent = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Login />} />
+        {role==="Employee"&&(
+          <>
+          <Route
+              path="/employeehome"
+              element={<PrivateRoute element={<EmployeeHome />} />}
+            />
+            <Route
+              path="/viewTicket"
+              element={<PrivateRoute element={<ViewTicket />} />}
+            />
+          </>
+        )}
 
         {/* Role-based private routes */}
         {role === "admin" && (
           <>
+          <Route
+              path="/viewTicket"
+              element={<PrivateRoute element={<ViewTicket />} />}
+            />
+            <Route
+              path="/shedule"
+              element={<PrivateRoute element={<Shedule />} />}
+            />
+             <Route
+              path="/dailyupdates"
+              element={<PrivateRoute element={<DailyUpdates />} />}
+            />
+            
             <Route
               path="/admindashboard"
               element={<PrivateRoute element={<AdminDashboard />} />}

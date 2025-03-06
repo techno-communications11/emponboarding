@@ -129,6 +129,8 @@ const Register = () => {
                       required
                     >
                       <option value="">Select Role</option>
+                      
+                      <option value="Employee">Employee</option>
                       <option value="Contract">Contract</option>
                       <option value="Ntid Creation Team">Ntid Creation Team</option>
                       <option value="Ntid Setup team">Ntid Setup Team</option>

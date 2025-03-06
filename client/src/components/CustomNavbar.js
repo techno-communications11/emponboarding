@@ -44,7 +44,7 @@ const CustomNavbar = () => {
         <Navbar.Brand
           as={Link}
           to={
-            role === "admin" ? "/adminDashboard" : "/userDashboard"
+            role === "admin" ? "/adminDashboard" : role==='Employee'?"/employeehome": "/userDashboard"
           }
           className="d-flex align-items-center"
         >
@@ -101,10 +101,49 @@ const CustomNavbar = () => {
                 NTID Creation Data
               </Nav.Link>
             )}
+            {/* {role==='Employee'&&(
+              <>
+               <Nav.Link
+                  as={Link}
+                  to="/employeehome"
+                  className="fw-bold mx-1"
+                  onClick={handleNavLinkClick}
+                >
+                  Shedule
+                </Nav.Link>
+              </>
+
+            )
+            
+            } */}
 
             {/* Admin-only Links */}
             {role === "admin" && (
               <>
+              <Nav.Link
+                  as={Link}
+                  to="/viewticket"
+                  className="fw-bold mx-1"
+                  onClick={handleNavLinkClick}
+                >
+                  Tickets
+                </Nav.Link>
+              <Nav.Link
+                  as={Link}
+                  to="/shedule"
+                  className="fw-bold mx-1"
+                  onClick={handleNavLinkClick}
+                >
+                  Shedule
+                </Nav.Link>
+                <Nav.Link
+                  as={Link}
+                  to="/dailyupdates"
+                  className="fw-bold mx-1"
+                  onClick={handleNavLinkClick}
+                >
+                  Daily Task
+                </Nav.Link>
                 <Nav.Link
                   as={Link}
                   to="/register"

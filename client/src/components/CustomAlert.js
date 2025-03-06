@@ -8,7 +8,7 @@ const CustomAlert = ({ message, onClose }) => {
         transform: "translateX(-50%)",
         backgroundColor: "#4CAF50",
         color: "white",
-        padding: "15px 30px",
+        padding: "25px 40px",
         borderRadius: "8px",
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
         zIndex: 1000,

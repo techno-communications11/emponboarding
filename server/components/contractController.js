@@ -1,55 +1,74 @@
 import db from "../dbConnection/db.js";
+import { Resend } from "resend";
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Save Contract
 export const saveContract = async (req, res) => {
   const {
-    first_name,last_name, phone, email, market, date_of_joining, mainstore,
-    stores_to_be_assigned, contract, contract_sent_date,
-    contract_sent_to, contract_sent_by, contract_signed_on,
-    backout_status, assigned
+    first_name,
+    last_name,
+    phone,
+    email,
+    market,
+    date_of_joining,
+    mainstore,
+    stores_to_be_assigned,
+    contract,
+    contract_sent_date,
+    contract_sent_to,
+    contract_sent_by,
+    contract_signed_on,
+    backout_status,
+    address,
+    assigned,
   } = req.body;
-   console.log(req.body);
+  // console.log(req.body);
 
   // Basic input validation
-  if (!first_name) {
-    return res.status(400).json({ error: "first_name is required" });
+  if (!first_name || !last_name) {
+    return res
+      .status(400)
+      .json({ error: "first_name and last_name are required" });
   }
 
   const query = `
     INSERT INTO contract 
-    (first_name,last_name, phone, email, market, date_of_joining, mainstore, stores_to_be_assigned, contract, 
-    contract_sent_date, contract_sent_to, contract_sent_by, contract_signed_on, backout_status, assigned)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
+    (first_name, last_name, phone, email, market, date_of_joining, mainstore, stores_to_be_assigned, contract, 
+    contract_sent_date, contract_sent_to, contract_sent_by, contract_signed_on, backout_status, address, assigned)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
     first_name || null,
-    last_name|| null, 
+    last_name || null,
     phone || null,
     email || null,
     market || null,
     date_of_joining || null,
     mainstore || null,
     stores_to_be_assigned || null,
-    contract || null,
+    contract || false,
     contract_sent_date || null,
     contract_sent_to || null,
     contract_sent_by || null,
     contract_signed_on || null,
-    backout_status || null,
+    backout_status || false,
+    address || false,
     assigned || false,
   ];
 
   try {
     const [result] = await db.execute(query, values);
-    res.status(201).json({ 
-      status: 201, 
-      message: "Contract saved successfully", 
-      id: result.insertId 
+    res.status(201).json({
+      status: 201,
+      message: "Contract saved successfully",
+      id: result.insertId,
     });
   } catch (err) {
     console.error("Error saving data:", err.message);
-    res.status(500).json({ error: "Failed to save data", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to save data", details: err.message });
   }
 };
 
@@ -57,7 +76,7 @@ export const saveContract = async (req, res) => {
 export const updateContract = async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
-   console.log(updates);
+  console.log(updates);
 
   if (!id) {
     return res.status(400).json({ error: "Contract ID is required" });
@@ -75,10 +94,7 @@ export const updateContract = async (req, res) => {
 
     // Process all fields from the update request
     Object.keys(updates).forEach((key) => {
-      // Skip id field if it was accidentally included
-      if (key === 'id') return;
-      
-      // Include field even if it's null or empty string
+      if (key === "id") return;
       fieldsToUpdate.push(`${key} = ?`);
       valuesToUpdate.push(updates[key] === undefined ? null : updates[key]);
     });
@@ -96,19 +112,23 @@ export const updateContract = async (req, res) => {
     valuesToUpdate.push(id);
 
     const [result] = await db.execute(updateQuery, valuesToUpdate);
-    
+
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Contract not found or no changes applied" });
+      return res
+        .status(404)
+        .json({ error: "Contract not found or no changes applied" });
     }
-    
-    res.status(200).json({ 
-      status: 200, 
-      message: "Contract updated successfully", 
-      affectedRows: result.affectedRows 
+
+    res.status(200).json({
+      status: 200,
+      message: "Contract updated successfully",
+      affectedRows: result.affectedRows,
     });
   } catch (err) {
     console.error("Error updating contract:", err.message);
-    res.status(500).json({ error: "Failed to update contract", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to update contract", details: err.message });
   }
 };
 
@@ -133,26 +153,114 @@ export const assignContract = async (req, res) => {
       .json({ error: "Failed to fetch contract", details: err.message });
   }
 
-  // Validate all fields are filled
-  const fieldsToValidate = { ...existingContract };
-  delete fieldsToValidate.assigned;
+  // Define mandatory fields based on contract value
+  const baseFields = [
+    "first_name",
+    "last_name",
+    "phone",
+    "email",
+    "market",
+    "date_of_joining",
+    "mainstore",
+    "stores_to_be_assigned",
+    "contract",
+  ];
 
-  if (Object.values(fieldsToValidate).some((field) => field === null || field === "")) {
-    return res.status(400).json({ error: "All fields must be filled before assigning" });
+  const contractFields = [
+    "contract_sent_date",
+    "contract_sent_to",
+    "contract_sent_by",
+    "contract_signed_on",
+  ];
+
+  // Check base fields
+  const missingBaseFields = baseFields.filter(
+    (field) =>
+      existingContract[field] === null ||
+      existingContract[field] === "" ||
+      existingContract[field] === undefined
+  );
+
+  if (missingBaseFields.length > 0) {
+    return res.status(400).json({
+      error: `Missing required fields: ${missingBaseFields.join(", ")}`,
+    });
   }
 
-  // Mark as assigned
-  const assignQuery = `
-    UPDATE contract
-    SET assigned = true
-    WHERE id = ?
-  `;
+  // If contract is true, check additional contract fields
+  if (existingContract.contract === true) {
+    const missingContractFields = contractFields.filter(
+      (field) =>
+        existingContract[field] === null ||
+        existingContract[field] === "" ||
+        existingContract[field] === undefined
+    );
+
+    if (missingContractFields.length > 0) {
+      return res.status(400).json({
+        error: `When contract is Yes, these fields are required: ${missingContractFields.join(
+          ", "
+        )}`,
+      });
+    }
+  }
+  const emailQuery = `SELECT email FROM users WHERE department = 'NTID Creation Team'`;
 
   try {
+    const [users] = await db.execute(emailQuery);
+    if (users.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No users found in the NTID Creation Team" });
+    }
+
+    // Extract email addresses
+    const userEmails = users.map((user) => user.email);
+
+    const createdAt = new Date().toLocaleString();
+
+    let emailBody = `
+      <h1 style="font-family: Arial, sans-serif; color: #333;">Ntid Creation Assigned</h1>
+      <p>Dear User,</p>
+      <p>Contract sent/assigned to NTID Creation Team</p>
+      <p>Contract Details:</p>
+      <p>First Name: ${existingContract.first_name}</p>
+      <p>Last Name: ${existingContract.last_name}</p>
+      <p>For the contract assigned on ${createdAt}</p>
+      <p>Thank you for your cooperation.</p>
+      <p>Best regards,</p>
+      <p>Your Team</p>
+      <a href="https://yourapp.com" style="padding:10px 20px;background-color:#007BFF;color:white;border-radius:5px;text-decoration:none;">View Details</a>
+    `;
+
+    // Send emails to all recipients
+    await Promise.all(
+      userEmails.map((email) =>
+        resend.emails.send({
+          from: "ticketing@techno-communications.com",
+          to: email,
+          subject: `Contract assigned to Team NTID Creation`,
+          html: emailBody,
+        })
+      )
+    );
+
+    console.log(`Email sent successfully to ${userEmails.join(", ")}`);
+
+    // Update contract as assigned
+    const assignQuery = `UPDATE contract SET assigned = true WHERE id = ?`;
     await db.execute(assignQuery, [id]);
-    res.status(200).json({ status: 200, message: "Contract assigned successfully" });
+
+    res
+      .status(200)
+      .json({
+        status: 200,
+        message: "Contract assigned successfully and emails sent",
+      });
   } catch (err) {
-    console.error("Error assigning data:", err.message);
-    res.status(500).json({ error: "Failed to assign data", details: err.message });
+    console.error("Error assigning contract:", err.message);
+    res
+      .status(500)
+      .json({ error: "Failed to assign contract", details: err.message });
   }
 };

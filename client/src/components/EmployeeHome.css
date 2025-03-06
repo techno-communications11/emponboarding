@@ -1,0 +1,56 @@
+/* EmployeeHome.css */
+
+.task-input {
+    border: 1px solid #ddd;
+    transition: border-color 0.3s;
+  }
+  
+  .task-input:focus {
+    border-color: #E10174;
+    box-shadow: 0 0 0 0.2rem rgba(225, 1, 116, 0.25);
+  }
+  
+  .task-display-card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  
+  .task-item {
+    border-left: 4px solid #E10174;
+    margin-bottom: 0.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .task-text {
+    white-space: pre-wrap;
+    padding: 0.5rem 0;
+  }
+  
+  .date-badge {
+    background-color: #E10174 !important;
+    border-radius: 20px;
+    font-weight: normal;
+  }
+  
+  /* Animation for new tasks */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .list-group-item {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .date-badge {
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+  }

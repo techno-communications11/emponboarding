@@ -2,7 +2,7 @@ import db from "../dbConnection/db.js";
 
 const insertTrainingData = async (req, res) => {
     const { phone, TrainingStatus, TrainingCompletedDate, id } = req.body;
-     console.log(typeof(req.body.phone),"data usegcwedtrwa")
+    //  console.log(typeof(req.body.phone),"data usegcwedtrwa")
 
     try {
         const query = `

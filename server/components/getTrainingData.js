@@ -3,7 +3,8 @@ import db from "../dbConnection/db.js";
 const getTrainingData = async (req, res) => {
     const query = `
         SELECT 
-            c.name, 
+            c.first_name, 
+            c.last_name, 
             c.phone, 
             c.market, 
             c.date_of_joining, 
@@ -21,8 +22,9 @@ const getTrainingData = async (req, res) => {
             ntid_creation nc ON c.phone = nc.phone
         LEFT JOIN 
             training_status ts ON c.phone = ts.phone
+            where ns.ntid_setup_assigned=1
         ORDER BY 
-            ns.createdat DESC
+            ns.createdat DESC ;
     `;
 
     try {

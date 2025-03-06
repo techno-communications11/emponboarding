@@ -1,50 +1,50 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table } from 'react-bootstrap';
-import { FaCheckCircle } from '@react-icons/all-files/fa/FaCheckCircle';
-import { FaTimesCircle as FaTimesCircleRed } from '@react-icons/all-files/fa/FaTimesCircle';
 
 const AdminDashboard = () => {
-  const data = [
-    { market: 'Arizona', employeesHired: 2, employeesBackedOut: 0, contractsSent: 1, contractsSigned: 1, contractNotReq: 0, contractsPending: 0, ntidsCreated: 2, ntidsDone: 2, ntidsSetupPending: 0, ntidsSetUp: 2, idvDone: 2, idvPending: 0, passport: 0, idDl: 2, left: 1, addressYes: 'Yes', addressNo: 0 },
-    { market: 'Dallas', employeesHired: 9, employeesBackedOut: 1, contractsSent: 6, contractsSigned: 6, contractNotReq: 2, contractsPending: 0, ntidsCreated: 8, ntidsDone: 3, ntidsSetupPending: 3, ntidsSetUp: 3, idvDone: 3, idvPending: 2, passport: 2, idDl: 1, left: 2, addressYes: 'Yes', addressNo: 0 },
-    { market: 'Denver', employeesHired: 1, employeesBackedOut: 1, contractsSent: 0, contractsSigned: 0, contractNotReq: 0, contractsPending: 0, ntidsCreated: 0, ntidsDone: 0, ntidsSetupPending: 0, ntidsSetUp: 0, idvDone: 0, idvPending: 0, passport: 0, idDl: 0, left: 0, addressYes: 'Yes', addressNo: 0 },
-    { market: 'El Paso', employeesHired: 3, employeesBackedOut: 0, contractsSent: 0, contractsSigned: 0, contractNotReq: 3, contractsPending: 0, ntidsCreated: 2, ntidsDone: 1, ntidsSetupPending: 1, ntidsSetUp: 1, idvDone: 1, idvPending: 0, passport: 0, idDl: 1, left: 0, addressYes: 'Yes', addressNo: 0 },
-    { market: 'Houston', employeesHired: 13, employeesBackedOut: 1, contractsSent: 10, contractsSigned: 10, contractNotReq: 0, contractsPending: 2, ntidsCreated: 10, ntidsDone: 9, ntidsSetupPending: 1, ntidsSetUp: 9, idvDone: 0, idvPending: 6, passport: 3, idDl: 3, left: 0, addressYes: 'Yes', addressNo: 0 },
-    { market: 'Los Angeles', employeesHired: 6, employeesBackedOut: 0, contractsSent: 6, contractsSigned: 6, contractNotReq: 0, contractsPending: 0, ntidsCreated: 6, ntidsDone: 5, ntidsSetupPending: 0, ntidsSetUp: 5, idvDone: 0, idvPending: 2, passport: 3, idDl: 1, left: 1, addressYes: 'Yes', addressNo: 0 },
-    { market: 'San Jose', employeesHired: 3, employeesBackedOut: 0, contractsSent: 3, contractsSigned: 3, contractNotReq: 0, contractsPending: 0, ntidsCreated: 2, ntidsDone: 2, ntidsSetupPending: 0, ntidsSetUp: 2, idvDone: 0, idvPending: 2, passport: 0, idDl: 0, left: 0, addressYes: 'Yes', addressNo: 0 },
-    { market: 'Solano County', employeesHired: 3, employeesBackedOut: 0, contractsSent: 3, contractsSigned: 3, contractNotReq: 0, contractsPending: 0, ntidsCreated: 3, ntidsDone: 3, ntidsSetupPending: 0, ntidsSetUp: 3, idvDone: 0, idvPending: 2, passport: 1, idDl: 1, left: 0, addressYes: 'Yes', addressNo: 0 },
-    { market: 'Sacramento', employeesHired: 1, employeesBackedOut: 0, contractsSent: 1, contractsSigned: 0, contractNotReq: 0, contractsPending: 1, ntidsCreated: 0, ntidsDone: 0, ntidsSetupPending: 0, ntidsSetUp: 0, idvDone: 0, idvPending: 0, passport: 0, idDl: 0, left: 0, addressYes: 'Yes', addressNo: 0 },
-  ];
+  const [data, setData] = useState([]);
+  const [grandTotal, setGrandTotal] = useState({});
 
-  const grandTotal = {
-    market: 'GRAND TOTAL',
-    employeesHired: 42,
-    employeesBackedOut: 3,
-    contractsSent: 31,
-    contractsSigned: 30,
-    contractNotReq: 5,
-    contractsPending: 3,
-    ntidsCreated: 34,
-    ntidsDone: 26,
-    ntidsSetupPending: 5,
-    ntidsSetUp: 26,
-    idvDone: 6,
-    idvPending: 14,
-    passport: 12,
-    idDl: 4,
-    left: 4,
-    addressYes: 8,
-    addressNo: 0,
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getadmindata`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        // console.log('Response:', response);
+        const result = await response.json();
+        // console.log('Result:', result.result[0]);
 
-  // Helper function to render icons based on status (e.g., for done/pending)
-  const renderStatusIcon = (value) => {
-    if (value > 0) {
-      return <FaCheckCircle color="green" />;
-    } else {
-      return <FaTimesCircleRed color="red" />;
-    }
-  };
+        if (!result.success) {
+          throw new Error(result.resut.message || 'Failed to fetch data');
+        }
+
+        const fetchedData = result.result[0]; // Access the 'data' property
+        // console.log('Fetched Data:', fetchedData);
+
+        const totals = fetchedData.reduce((acc, row) => {
+          Object.keys(row).forEach(key => {
+            if (typeof row[key] === 'number') {
+              acc[key] = (acc[key] || 0) + row[key];
+            }
+          });
+          return acc;
+        }, {});
+
+        totals.market = 'GRAND TOTAL';
+        setData(fetchedData);
+        setGrandTotal(totals);
+        // console.log('Totals:', totals);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="container-fluid mt-4">
@@ -52,19 +52,19 @@ const AdminDashboard = () => {
         Techno Communications Onboarding Status Feb 1 - 23
       </h1>
       <Table striped bordered hover responsive>
-        <thead >
-          <tr >
-            <th style={{ backgroundColor: '#E10174', color: 'white' }}> Market</th>
-            <th style={{ backgroundColor: '#E10174', color: 'white' }}> No of Employees Hired</th>
-            <th style={{ backgroundColor: '#E10174', color: 'white' }}> No of Employees Backed Out</th>
+        <thead>
+          <tr>
+            <th style={{ backgroundColor: '#E10174', color: 'white' }}>Market</th>
+            <th style={{ backgroundColor: '#E10174', color: 'white' }}>No of Employees Hired</th>
+            <th style={{ backgroundColor: '#E10174', color: 'white' }}>No of Employees Backed Out</th>
             <th style={{ backgroundColor: '#E10174', color: 'white' }}>Contracts Sent</th>
             <th style={{ backgroundColor: '#E10174', color: 'white' }}>Contracts Signed</th>
             <th style={{ backgroundColor: '#E10174', color: 'white' }}>Contract Not Req</th>
             <th style={{ backgroundColor: '#E10174', color: 'white' }}>Contracts Pending</th>
-            <th style={{ backgroundColor: '#E10174', color: 'white' }}>NTID's Created</th>
-            <th style={{ backgroundColor: '#E10174', color: 'white' }}>NTID's Done</th>
-            <th style={{ backgroundColor: '#E10174', color: 'white' }}>NTID's Setup Pending</th>
-            <th style={{ backgroundColor: '#E10174', color: 'white' }}>NTID's Set Up</th>
+            <th style={{ backgroundColor: '#E10174', color: 'white' }}>NTID Created</th>
+            <th style={{ backgroundColor: '#E10174', color: 'white' }}>NTID SetUp Done</th>
+            <th style={{ backgroundColor: '#E10174', color: 'white' }}>NTID Setup Pending</th>
+            {/* <th style={{ backgroundColor: '#E10174', color: 'white' }}>NTID Set Up</th> */}
             <th style={{ backgroundColor: '#E10174', color: 'white' }}>IDV Done</th>
             <th style={{ backgroundColor: '#E10174', color: 'white' }}>IDV Pending</th>
             <th style={{ backgroundColor: '#E10174', color: 'white' }}>Passport</th>
@@ -78,44 +78,44 @@ const AdminDashboard = () => {
           {data.map((row, index) => (
             <tr key={index}>
               <td>{row.market}</td>
-              <td>{row.employeesHired}</td>
-              <td>{row.employeesBackedOut}</td>
-              <td>{row.contractsSent}</td>
-              <td>{row.contractsSigned}</td>
-              <td>{row.contractNotReq}</td>
-              <td>{row.contractsPending}</td>
-              <td>{row.ntidsCreated}</td>
-              <td>{renderStatusIcon(row.ntidsDone)}</td>
-              <td>{renderStatusIcon(row.ntidsSetupPending)}</td>
-              <td>{renderStatusIcon(row.ntidsSetUp)}</td>
-              <td>{renderStatusIcon(row.idvDone)}</td>
-              <td>{renderStatusIcon(row.idvPending)}</td>
-              <td>{row.passport}</td>
-              <td>{row.idDl}</td>
-              <td>{row.left}</td>
-              <td>{row.addressYes}</td>
-              <td>{row.addressNo}</td>
+              <td>{row.employeesHired ||0}</td>
+              <td>{row.employeesBackedOut ||0}</td>
+              <td>{row.contractsSent ||0}</td>
+              <td>{row.contractsSigned ||0}</td>
+              <td>{row.contractNotReq ||0}</td>
+              <td>{row.contractsPending ||0}</td>
+              <td>{row.ntidsCreated ||0}</td>
+              <td>{row.ntidsDone ||0}</td>
+              <td>{row.ntidsSetupPending ||0}</td>
+              {/* <td>{row.ntidsSetUp ||0}</td> */}
+              <td>{row.idvDone ||0}</td>
+              <td>{row.idvPending ||0}</td>
+              <td>{row.passport ||0}</td>
+              <td>{row.idDl ||0}</td>
+              <td>{row.left ||0}</td>
+              <td>{row.addressYes ||0}</td>
+              <td>{row.addressNo ||0}</td>
             </tr>
           ))}
           <tr style={{ fontWeight: 'bold', backgroundColor: '#f8f9fa' }}>
             <td>{grandTotal.market}</td>
-            <td>{grandTotal.employeesHired}</td>
-            <td>{grandTotal.employeesBackedOut}</td>
-            <td>{grandTotal.contractsSent}</td>
-            <td>{grandTotal.contractsSigned}</td>
-            <td>{grandTotal.contractNotReq}</td>
-            <td>{grandTotal.contractsPending}</td>
-            <td>{grandTotal.ntidsCreated}</td>
-            <td>{renderStatusIcon(grandTotal.ntidsDone)}</td>
-            <td>{renderStatusIcon(grandTotal.ntidsSetupPending)}</td>
-            <td>{renderStatusIcon(grandTotal.ntidsSetUp)}</td>
-            <td>{renderStatusIcon(grandTotal.idvDone)}</td>
-            <td>{renderStatusIcon(grandTotal.idvPending)}</td>
-            <td>{grandTotal.passport}</td>
-            <td>{grandTotal.idDl}</td>
-            <td>{grandTotal.left}</td>
-            <td>{grandTotal.addressYes}</td>
-            <td>{grandTotal.addressNo}</td>
+            <td>{grandTotal.employeesHired ||0}</td>
+            <td>{grandTotal.employeesBackedOut ||0}</td>
+            <td>{grandTotal.contractsSent ||0}</td>
+            <td>{grandTotal.contractsSigned ||0}</td>
+            <td>{grandTotal.contractNotReq ||0}</td>
+            <td>{grandTotal.contractsPending ||0}</td>
+            <td>{grandTotal.ntidsCreated||0}</td>
+            <td>{grandTotal.ntidsDone ||0}</td>
+            <td>{grandTotal.ntidsSetupPending ||0}</td>
+            {/* <td>{grandTotal.ntidsSetUp}</td> */}
+            <td>{grandTotal.idvDone||0}</td>
+            <td>{grandTotal.idvPending ||0}</td>
+            <td>{grandTotal.passport ||0}</td>
+            <td>{grandTotal.idDl ||0}</td>
+            <td>{grandTotal.left ||0}</td>
+            <td>{grandTotal.addressYes ||0}</td>
+            <td>{grandTotal.addressNo ||0}</td>
           </tr>
         </tbody>
       </Table>
