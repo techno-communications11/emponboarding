@@ -3,8 +3,8 @@
 
 // The Register function
 const register = async (req, res) => {
-  let { email, password,role } = req.body;
-  // console.log('Incoming request body:', req.body);
+  let { email, password,role,Technoid } = req.body;
+  console.log('Incoming request body:', req.body);
 
   if (!email || !password) {
     // console.error('Missing email or password');
@@ -29,8 +29,8 @@ const register = async (req, res) => {
     
 
     // Insert new user into the database
-    const insertQuery = 'INSERT INTO users (email, password,department) VALUES (?, ?,?)';
-    const [insertResult] = await db.execute(insertQuery, [email, hashedPassword,role]);
+    const insertQuery = 'INSERT INTO users (email,technoid, password,department) VALUES (?, ?,?,?)';
+    const [insertResult] = await db.execute(insertQuery, [email,Technoid, hashedPassword,role]);
 
     // console.log('User inserted successfully:', insertResult);
 

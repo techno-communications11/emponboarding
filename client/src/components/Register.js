@@ -6,6 +6,7 @@ import Animation from "./RegisterAnimation.json";
 const Register = () => {
   const [userData, setUserData] = useState({
     email: '',
+    Technoid:'',
     password: '',
     confirmPassword: '',
     role: 'user',
@@ -45,7 +46,7 @@ const Register = () => {
       if (response.status===201) {
         setSuccess('Registration successful! Please login.');
         setError('');
-        setUserData({ email: '', password: '', confirmPassword: '', role: 'admin' });
+        setUserData({ email: '',Technoid:'', password: '', confirmPassword: '', role: 'admin' });
       } else {
         setError(data.message || 'Registration failed');
       }
@@ -118,7 +119,7 @@ const Register = () => {
                       required
                     />
                   </div>
-
+                  
                   <div className="mb-3">
                     <select
                       className="form-select shadow-none border"
@@ -138,6 +139,20 @@ const Register = () => {
                       <option value="admin">Admin</option>
                     </select>
                   </div>
+
+                  {userData.role==='Employee'&&<div className="mb-3">
+                    <input
+                      type="Technoid"
+                      className="form-control shadow-none border"
+                      id="Technoid"
+                      name="Technoid"
+                      value={userData.Technoid}
+                      onChange={handleChange}
+                      placeholder="Enter Technoid"
+                      required
+                    />
+                  </div>}
+
 
                   <div className="mb-3">
                     <div className="input-group">

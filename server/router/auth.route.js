@@ -25,14 +25,17 @@ import {
   import TaskDataUpload from '../components/TaskDataUpload.js';
   import ViewTicket from '../components/ViewTicket.js';
 import updatestatus from '../components/updatestatus.js';
+import Uploadshedule from '../components/UploadShedule.js'
 // Create the router
+import getweekshedule from "../components/getweeklyshedule.js";
 
 
 const router = express.Router();
 
 router.post("/savecontract", saveContract);
 router.get("/getntidcontract", getNtidContract);
-    
+router.post('/upload-schedule', upload.single('file'), Uploadshedule);
+router.get("/getweekshedule/:userid", getweekshedule);
 router.put("/updatestatus/:id",updatestatus)
 
 // Update Contract

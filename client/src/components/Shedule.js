@@ -15,21 +15,37 @@ function Schedule() {
   };
 
   // Handle file upload (simulating the file upload here)
-  const handleUpload = () => {
-    if (file) {
-      setUploading(true);
-      console.log("File uploaded:", file);
-
-      // Simulate a network request
-      setTimeout(() => {
-        setUploading(false);
-        setUploadSuccess(true);
-        setFile(null);
-      }, 2000);
-    } else {
+  const handleUpload = async () => {
+    if (!file) {
       console.log("No file selected");
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      setUploading(true);
+  
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/upload-schedule`, {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+  
+      console.log("File uploaded successfully");
+      setUploadSuccess(true);
+      setFile(null);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    } finally {
+      setUploading(false);
     }
   };
+  
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">

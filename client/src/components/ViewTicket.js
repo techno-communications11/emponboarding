@@ -247,14 +247,15 @@ function ViewTicket() {
                                 </Button>
                               </>
                             )}
-                            {
+                            
+                          </>
+                        )}
+                        {
                               ticket.status === "settle" && (
                                 <FcApproval className="fs-1 ms-5"/>
                               )
 
                             }
-                          </>
-                        )}
                       </div>
                     </Col>
                   </Row>
