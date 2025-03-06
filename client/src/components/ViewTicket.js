@@ -52,7 +52,7 @@ function ViewTicket() {
     };
 
     fetchTickets();
-  }, []);
+  }, [userid,role]);
 
   const handleStatusUpdate = async (ticketId, status) => {
     try {
