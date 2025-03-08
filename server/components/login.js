@@ -36,6 +36,7 @@ async function login(req, res) {
       process.env.JWT_SECRET, // Secret key
       { expiresIn: '1h' } // Expiration time
     );
+     console.log(user.id,user.email,user.department);
 
     // Send the token in the response
     return res.status(200).json({

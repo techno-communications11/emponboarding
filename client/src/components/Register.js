@@ -46,7 +46,7 @@ const Register = () => {
       if (response.status===201) {
         setSuccess('Registration successful! Please login.');
         setError('');
-        setUserData({ email: '',Technoid:'', password: '', confirmPassword: '', role: 'admin' });
+        setUserData({ email: '',Technoid:'', password: '', confirmPassword: '', role: 'Admin' });
       } else {
         setError(data.message || 'Registration failed');
       }
@@ -136,7 +136,7 @@ const Register = () => {
                       <option value="Ntid Creation Team">Ntid Creation Team</option>
                       <option value="Ntid Setup team">Ntid Setup Team</option>
                       <option value="Training Team">Training Team</option>
-                      <option value="admin">Admin</option>
+                      <option value="Admin">Admin</option>
                     </select>
                   </div>
 

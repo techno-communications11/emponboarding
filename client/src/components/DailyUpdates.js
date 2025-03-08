@@ -9,25 +9,21 @@ import {
   Col,
   Badge,
 } from "react-bootstrap";
-import {
-  FaCalendarAlt,
-  FaSearch,
-  FaTasks,
-  FaCheck,
-} from "react-icons/fa";
+import { FaCalendarAlt, FaSearch, FaTasks, FaCheck } from "react-icons/fa";
 import { CiMail } from "react-icons/ci";
-
+import { MdAddTask } from "react-icons/md";
+// import { TbCapture } from "react-icons/tb";
 import "./EmployeeHome.css";
 import CustomAlert from "./CustomAlert";
 import { FaShareAlt } from "react-icons/fa";
-
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 const DailyUpdates = () => {
   const [submittedData, setSubmittedData] = useState([]);
   const [filterDate, setFilterDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-
-  
+  const navigate = useNavigate();
 
   // Fetch tasks on component mount
   useEffect(() => {
@@ -50,7 +46,7 @@ const DailyUpdates = () => {
       }
 
       const data = await response.json();
-      
+
       setSubmittedData(data);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -59,8 +55,22 @@ const DailyUpdates = () => {
       setLoading(false);
     }
   };
+  const token = localStorage.getItem("token");
+  let id;
+  let role;
 
-  
+  if (token) {
+    try {
+      const decodedToken = jwtDecode(token);
+      id = decodedToken.id;
+      role = decodedToken.role;
+    } catch (error) {
+      console.error("Invalid token:", error);
+    }
+  } else {
+    console.error("Token not found");
+  }
+  console.log(id, role);
 
   // Convert date string to required format for filtering
   const formatDateForFilter = (dateString) => {
@@ -102,15 +112,33 @@ const DailyUpdates = () => {
 
       <Card className="shadow-sm mb-4">
         <Card.Body>
-          <h1
-            className="text-center mb-4 fw-bolder"
-            style={{ color: "#E10174" }}
-          >
-            <FaTasks className="me-2" /> Daily Task Data ...
-          </h1>
+          <Row>
+            <Col md={3}></Col>
+            <Col md={7}>
+              <h1
+                className="text-center mb-4 fw-bolder"
+                style={{ color: "#E10174" }}
+              >
+                <FaTasks className="me-2" /> Daily Task Data ...
+              </h1>
+            </Col>
+            {role !== "Employee" && role && (
+              <Col
+                md={2}
+                className="mb-3 d-flex flex-row align-items-end gap-2"
+              >
+                <Button
+                  className="w-100 fw-bolder border-primary"
+                  variant="outline-primary"
+                  onClick={() => navigate("/assigntask")}
+                >
+                  <MdAddTask className="fs-3" /> Assign Task
+                </Button>
+              </Col>
+            )}
+          </Row>
 
           {/* Input and Send Button */}
-        
 
           {/* Date Filter */}
           <Card className="bg-light mb-4">
@@ -152,30 +180,31 @@ const DailyUpdates = () => {
                         <FaCalendarAlt className="me-2" /> {date}
                       </Badge>
                     </h5>
-                    
+
                     <ul className="list-group mt-2">
                       {items.map((item) => (
                         <>
-                       <Badge bg="success" className="date-badge  opacity-75 py-2 w-25">
-                        <CiMail className="me-2 fs-3" />Email: {item.email}
-                      </Badge>
-                        <li
-                          key={item.id}
-                          className="list-group-item task-item d-flex justify-content-between align-items-center"
-                        >
-                       
-                          <div className="task-text">{item.taskdata}</div>
-                          <Button
-                            variant="success"
-                            size="sm"
-                            onClick={() => handleShare(item.taskdata)}
+                          <Badge
+                            bg="success"
+                            className="date-badge  opacity-75 py-2 w-25"
                           >
-                            <FaShareAlt /> Share
-                          </Button>
-                        </li>
+                            <CiMail className="me-2 fs-3" />
+                            Email: {item.email}
+                          </Badge>
+                          <li
+                            key={item.id}
+                            className="list-group-item task-item d-flex justify-content-between align-items-center"
+                          >
+                            <div className="task-text">{item.taskdata}</div>
+                            <Button
+                              variant="success"
+                              size="sm"
+                              onClick={() => handleShare(item.taskdata)}
+                            >
+                              <FaShareAlt /> Share
+                            </Button>
+                          </li>
                         </>
-                        
-                        
                       ))}
                     </ul>
                   </div>

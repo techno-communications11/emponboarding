@@ -36,7 +36,7 @@ function ViewTicket() {
           throw new Error(`Server responded with status: ${response.status}`);
         }
         const data = await response.json();
-        if (userid && role !== "admin") {
+        if (userid && role !== "Admin") {
           const userTickets = data.filter((ticket) => ticket.employee_id === userid);
           setTickets(userTickets);
         } else {
@@ -210,7 +210,7 @@ function ViewTicket() {
                     </Col>
                     <Col md={2} className="mt-2">
                       <div className="d-grid gap-2 fw-bolder">
-                        {role === "admin" && (
+                        {role === "Admin" && (
                           <>
                             {ticket.status === "Open" && (
                               <>

@@ -5,6 +5,7 @@ const AdminDashboard = async (req, res) => {
     const query = `
       SELECT 
         c.market,
+        c.createdat as "createdat",
         COUNT(*) as "employeesHired",
         COUNT(backout_status) as "employeesBackedOut",
         COUNT(contract_sent_date) as "contractsSent",

@@ -27,7 +27,10 @@ import {
 import updatestatus from '../components/updatestatus.js';
 import Uploadshedule from '../components/UploadShedule.js'
 // Create the router
+import getUsers from '../components/getusers.js';
 import getweekshedule from "../components/getweeklyshedule.js";
+import assignTask from '../components/TaskCreation.js';
+import getTaskData from '../components/getTaskdata.js';
 
 
 const router = express.Router();
@@ -37,9 +40,12 @@ router.get("/getntidcontract", getNtidContract);
 router.post('/upload-schedule', upload.single('file'), Uploadshedule);
 router.get("/getweekshedule/:userid", getweekshedule);
 router.put("/updatestatus/:id",updatestatus)
+router.post('/createtask',assignTask)
 
 // Update Contract
 router.put("/updatecontract/:id", updateContract);
+router.get('/getusers',getUsers);
+router.get('/taskdata',getTaskData);
 
 // Assign Contract
 router.put("/assigncontract/:id", assignContract);

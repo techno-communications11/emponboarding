@@ -44,7 +44,7 @@ const CustomNavbar = () => {
         <Navbar.Brand
           as={Link}
           to={
-            role === "admin" ? "/adminDashboard" : role==='Employee'?"/employeehome": "/userDashboard"
+            role === "Admin" ? "/adminDashboard" : role==='Employee'?"/employeehome": "/userDashboard"
           }
           className="d-flex align-items-center"
         >
@@ -118,7 +118,7 @@ const CustomNavbar = () => {
             } */}
 
             {/* Admin-only Links */}
-            {role === "admin" && (
+            {role === "Admin" && (
               <>
               <Nav.Link
                   as={Link}

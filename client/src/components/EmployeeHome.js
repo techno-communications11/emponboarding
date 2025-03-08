@@ -28,6 +28,9 @@ import { FaEye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 
+
+
+
 const EmployeeHome = () => {
   const [inputValue, setInputValue] = useState("");
   const [submittedData, setSubmittedData] = useState([]);
@@ -39,18 +42,20 @@ const navigate=useNavigate();
   // Fetch token from localStorage
   const token = localStorage.getItem("token");
   let id;
+  let role;
 
   if (token) {
     try {
       const decodedToken = jwtDecode(token);
       id = decodedToken.id;
+       role=decodedToken.role;
     } catch (error) {
       console.error("Invalid token:", error);
     }
   } else {
     console.error("Token not found");
   }
-
+ console.log(id,role);
 
    const handleNavigate=()=>{
     navigate('/viewticket')
@@ -204,9 +209,16 @@ const navigate=useNavigate();
 
       <Card className="shadow-sm mb-4">
         <Card.Body>
-          <h1 className="text-center mb-4 fw-bolder" style={{ color: "#E10174" }}>
+          <Row>
+            
+            <h1 className="text-center mb-4 fw-bolder" style={{ color: "#E10174" }}>
             <FaTasks className="me-2" /> Daily Task Updater ...
           </h1>
+            
+
+          </Row>
+         
+         
           
 
           {/* Input and Send Button */}

@@ -17,6 +17,7 @@ import Shedule from "./components/Shedule.js";
 import EmployeeHome from "./components/EmployeeHome.js";
 import DailyUpdates from "./components/DailyUpdates.js";
 import ViewTicket from "./components/ViewTicket.js";
+import Assigntask from "./components/Task/Assigntask.js";
 
 // Function to get role from token
 const getRoleFromToken = () => {
@@ -55,8 +56,12 @@ const AppContent = () => {
         )}
 
         {/* Role-based private routes */}
-        {role === "admin" && (
+        {role === "Admin" && (
           <>
+           <Route
+              path="/assigntask"
+              element={<PrivateRoute element={<Assigntask />} />}
+            />
           <Route
               path="/viewTicket"
               element={<PrivateRoute element={<ViewTicket />} />}
