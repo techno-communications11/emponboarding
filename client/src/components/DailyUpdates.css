@@ -1,0 +1,111 @@
+.jira-container {
+    padding: 20px;
+    background-color: #f4f5f7;
+    min-height: 100vh;
+  }
+  
+  .jira-sidebar {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sidebar-title {
+    font-size: 1.5rem;
+    color: #172b4d;
+    margin-bottom: 20px;
+  }
+  
+  .filter-section {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .filter-input {
+    padding: 10px;
+    border: 1px solid #dfe1e6;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #fff;
+  }
+  
+  .jira-button {
+    color: #0052cc;
+    border-color: #0052cc;
+    font-weight: 500;
+  }
+  
+  .jira-button:hover {
+    background-color: #0052cc;
+    color: #fff;
+  }
+  
+  .jira-main {
+    padding-left: 20px;
+  }
+  
+  .jira-title {
+    font-size: 2rem;
+    color: #172b4d;
+    margin-bottom: 20px;
+  }
+  
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .task-group {
+    margin-bottom: 20px;
+  }
+  
+  .date-badge {
+    font-size: 14px;
+    padding: 8px 12px;
+    background-color: #0052cc !important;
+  }
+  
+  .task-card {
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s;
+  }
+  
+  .task-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .task-text {
+    font-size: 16px;
+    color: #172b4d;
+    margin-bottom: 8px;
+  }
+  
+  .task-meta {
+    margin-top: 5px;
+  }
+  
+  .email-badge {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  
+  .share-button {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  
+  .no-tasks-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .no-tasks-card .card-text {
+    color: #6b778c;
+    font-size: 16px;
+  }

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Button, Spinner, Alert, Badge, Dropdown } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import CustomAlert from "./CustomAlert";
-import { FaFilter, FaListUl } from 'react-icons/fa';
+import { FaFilter, FaListUl, FaCog } from 'react-icons/fa';
 import { FcApproval } from "react-icons/fc";
-
+import './ViewTicket.css'; // Assuming you'll add custom CSS
 
 function ViewTicket() {
   const [tickets, setTickets] = useState([]);
@@ -13,6 +13,8 @@ function ViewTicket() {
   const [alertMessage, setAlertMessage] = useState("");
   const [priorityFilter, setPriorityFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterDate, setFilterDate] = useState(""); // date filter state
 
   const token = localStorage.getItem("token");
   let userid;
@@ -32,239 +34,171 @@ function ViewTicket() {
     const fetchTickets = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/viewticket`);
-        if (!response.ok) {
-          throw new Error(`Server responded with status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
         const data = await response.json();
-        if (userid && role !== "Admin") {
-          const userTickets = data.filter((ticket) => ticket.employee_id === userid);
-          setTickets(userTickets);
-        } else {
-          setTickets(data);
-        }
+        setTickets(userid && role !== "Admin" ? data.filter(ticket => ticket.employee_id === userid) : data);
         setLoading(false);
       } catch (err) {
         setAlertMessage(err.message);
-        console.error("Error fetching tickets:", err);
         setError("Failed to load tickets. Please try again later.");
         setLoading(false);
       }
     };
-
     fetchTickets();
-  }, [userid,role]);
+  }, [userid, role]);
 
   const handleStatusUpdate = async (ticketId, status) => {
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/updatestatus/${ticketId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-
-      setTickets((prevTickets) =>
-        prevTickets.map((ticket) =>
-          ticket.ticket_id === ticketId ? { ...ticket, status } : ticket
-        )
-      );
+      if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
+      setTickets(prev => prev.map(ticket => ticket.ticket_id === ticketId ? { ...ticket, status } : ticket));
       setAlertMessage(`Updated ticket status to ${status}`);
     } catch (err) {
-      console.error("Error updating ticket:", err);
       setAlertMessage(err.message);
-      alert("Failed to update ticket status. Please try again.");
     }
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority.toLowerCase()) {
-      case "high":
-        return "danger";
-      case "medium":
-        return "warning";
-      case "low":
-        return "success";
-      default:
-        return "secondary";
-    }
-  };
+  const getPriorityColor = (priority) => ({
+    high: "danger",
+    medium: "warning",
+    low: "success",
+    urgent: "dark",
+  }[priority.toLowerCase()] || "secondary");
 
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case "open":
-        return "primary";
-      case "pending":
-        return "warning";
-      case "Completed":
-        return "success";
-      case "reopen":
-        return "danger";
-      default:
-        return "secondary";
-    }
-  };
-   if(priorityFilter==='All'||statusFilter==='All'){
-    setPriorityFilter('');
-    setStatusFilter('');
-   }
+  const getStatusColor = (status) => ({
+    open: "primary",
+    pending: "warning",
+    completed: "success",
+    reopen: "danger",
+    settle: "info",
+  }[status.toLowerCase()] || "secondary");
 
   const closeAlert = () => setAlertMessage("");
 
-  // Filter tickets based on priority and status
-  const filteredTickets = tickets.filter((ticket) => {
+  const filteredTickets = tickets.filter(ticket => {
     const matchesPriority = priorityFilter ? ticket.priority === priorityFilter : true;
     const matchesStatus = statusFilter ? ticket.status === statusFilter : true;
-    return matchesPriority && matchesStatus;
+    const matchesSearch = searchQuery ? ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) || ticket.description.toLowerCase().includes(searchQuery.toLowerCase()) 
+    || ticket.name.toLowerCase().includes(searchQuery.toLowerCase()): true;
+
+    // Filter by date if a date is selected
+    const matchesDate = filterDate ? ticket.created_at.slice(0, 10) === filterDate : true;
+
+    return matchesPriority && matchesStatus && matchesSearch && matchesDate;
   });
 
-  if (loading) {
-    return (
-      <div className="text-center p-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center p-5">
-        <Alert variant="danger">{error}</Alert>
-      </div>
-    );
-  }
+  if (loading) return <div className="text-center p-5"><Spinner animation="border" /></div>;
+  if (error) return <div className="text-center p-5"><Alert variant="danger">{error}</Alert></div>;
 
   return (
-    <div className="container-fluid p-4">
+    <div className="jira-container">
       {alertMessage && <CustomAlert message={alertMessage} onClose={closeAlert} />}
-      <Row className="align-items-center mb-4 border p-2 rounded">
-        <Col md={1}>
-          <Dropdown>
-            <Dropdown.Toggle className="border bg-transparent text-danger fw-bolder">
-              <FaFilter /> Select Priority
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              {['All','High', 'Low', 'Medium', 'Urgent'].map((item, index) => (
-                <Dropdown.Item key={index} onClick={() => setPriorityFilter(item)}>
-                  {item}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
+      <Row>
+        {/* Sidebar */}
+        <Col md={3} className="jira-sidebar">
+          <h3 className="sidebar-title"><FaCog /> Filters</h3>
+          <div className="filter-section">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search tickets by name, title, and description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="jira-filter-input mt-2 fw-medium"
+            />
+            <Dropdown className="mt-1">
+              <Dropdown.Toggle className="filter-toggle w-100 text-start">
+                <FaFilter /> Priority
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {['', 'High', 'Medium', 'Low', 'Urgent'].map((item, idx) => (
+                  <Dropdown.Item key={idx} onClick={() => setPriorityFilter(item)}>
+                    {item || 'All'}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+            <Dropdown className="mt-1 ">
+              <Dropdown.Toggle className="filter-toggle w-100 text-start">
+                <FaFilter /> Status
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {['', 'Open', 'Pending', 'Completed', 'Reopen', 'Settle'].map((item, idx) => (
+                  <Dropdown.Item key={idx} onClick={() => setStatusFilter(item)}>
+                    {item || 'All'}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
         </Col>
-        <Col md={9} className="text-center">
-          <h1 className="mb-4 fw-bold" style={{ color: '#E10174' }}>
-            <FaListUl /> Support Tickets
-          </h1>
-        </Col>
-        <Col md={1}>
-          <Dropdown>
-            <Dropdown.Toggle className="border bg-transparent text-danger fw-bolder">
-              <FaFilter /> Select Status
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              {['All','Open', 'Pending', 'settle', 'Completed','Reopen'].map((item, index) => (
-                <Dropdown.Item key={index} onClick={() => setStatusFilter(item)}>
-                  {item}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
-        </Col>
-      </Row>
 
-      {filteredTickets.length === 0 ? (
-        <div className="text-center p-5">
-          <Alert variant="info">No tickets found.</Alert>
-        </div>
-      ) : (
-        <Row className="g-1">
-          {filteredTickets.map((ticket) => (
-            <Col key={ticket.ticket_id} xs={12}>
-              <Card className={`h-100 ${ticket.Completed ? "bg-light shadow-lg" : "shadow-lg fw-medium"}`}>
-                <Card.Body disabled={ticket.status === 'Settle'}>
-                  <Row >
-                    <Col md={4}>
-                      <Card.Title className="fw-bold">Name: {ticket.name}</Card.Title>
-                      <Card.Subtitle className="mb-2 text-muted">Email: {ticket.email}</Card.Subtitle>
-                    </Col>
-                    <Col md={4}>
-                      <Card.Text><strong>Title:</strong> {ticket.title}</Card.Text>
-                      <Card.Text><strong>Description:</strong> {ticket.description}</Card.Text>
-                    </Col>
-                    <Col md={2}>
-                      <Card.Text>
-                        <strong>Priority:</strong>{" "}
-                        <Badge bg={getPriorityColor(ticket.priority)}>{ticket.priority}</Badge>
-                      </Card.Text>
-                      <Card.Text>
-                        <strong>Status:</strong>{" "}
-                        <Badge bg={getStatusColor(ticket.status)}>{ticket.status}</Badge>
-                      </Card.Text>
-                    </Col>
-                    <Col md={2} className="mt-2">
-                      <div className="d-grid gap-2 fw-bolder">
-                        {role === "Admin" && (
-                          <>
+        {/* Main Content */}
+        <Col md={9} className="jira-main">
+          <h1 className="jira-title"><FaListUl /> Tickets</h1>
+          {filteredTickets.length === 0 ? (
+            <Alert variant="info" className="text-center">No tickets found.</Alert>
+          ) : (
+            <div className="ticket-list">
+              {filteredTickets.map(ticket => (
+                <Card key={ticket.ticket_id} className="ticket-card">
+                  <Card.Body>
+                    <Row className="align-items-center">
+                      <Col md={8}>
+                        <Card.Title className="ticket-title">{ticket.name}</Card.Title>
+                        <Card.Text className="fw-bolder text-success">{ticket.title}</Card.Text>
+                        <Card.Text className="ticket-desc">{ticket.description}</Card.Text>
+                        <div className="ticket-meta">
+                          <Badge className='me-2' bg={getPriorityColor(ticket.created_at)}>{ticket.created_at.slice(0,10)}</Badge>
+                          <Badge bg={getPriorityColor(ticket.priority)}>{ticket.priority}</Badge>
+                          <Badge bg={getStatusColor(ticket.status)} className="ms-2">{ticket.status}</Badge>
+                        </div>
+                      </Col>
+                      <Col md={4} className="text-end">
+                        {role === "Admin" && ticket.status !== "Settle" && (
+                          <div className="ticket-actions">
                             {ticket.status === "Open" && (
                               <>
-                                <Button variant="warning" onClick={() => handleStatusUpdate(ticket.ticket_id, "Pending")}>
-                                  Mark as Pending
-                                </Button>
-                                <Button variant="success" onClick={() => handleStatusUpdate(ticket.ticket_id, "Completed")}>
-                                  Mark as Completed
-                                </Button>
+                                <Button variant="outline-warning" size="sm" onClick={() => handleStatusUpdate(ticket.ticket_id, "Pending")}>Pending</Button>
+                                <Button variant="outline-success" size="sm" className="ms-2" onClick={() => handleStatusUpdate(ticket.ticket_id, "Completed")}>Complete</Button>
                               </>
                             )}
                             {ticket.status === "Pending" && (
-                              <Button variant="success" onClick={() => handleStatusUpdate(ticket.ticket_id, "Completed")}>
-                                Mark as Completed
-                              </Button>
+                              <Button variant="outline-success" size="sm" onClick={() => handleStatusUpdate(ticket.ticket_id, "Completed")}>Complete</Button>
                             )}
                             {ticket.status === "Completed" && (
                               <>
-                                <Button variant="danger" onClick={() => handleStatusUpdate(ticket.ticket_id, "Reopen")}>
-                                  Reopen Ticket
-                                </Button>
-                                <Button variant="secondary" onClick={() => handleStatusUpdate(ticket.ticket_id, "settle")}>
-                                  Settle Ticket
-                                </Button>
+                                <Button variant="outline-danger" size="sm" onClick={() => handleStatusUpdate(ticket.ticket_id, "Reopen")}>Reopen</Button>
+                                <Button variant="outline-secondary" size="sm" className="ms-2" onClick={() => handleStatusUpdate(ticket.ticket_id, "Settle")}>Settle</Button>
                               </>
                             )}
                             {ticket.status === "Reopen" && (
                               <>
-                                <Button variant="warning" onClick={() => handleStatusUpdate(ticket.ticket_id, "Pending")}>
-                                  Mark as Pending
-                                </Button>
-                                <Button variant="success" onClick={() => handleStatusUpdate(ticket.ticket_id, "Completed")}>
-                                  Mark as Completed
-                                </Button>
+                                <Button variant="outline-warning" size="sm" onClick={() => handleStatusUpdate(ticket.ticket_id, "Pending")}>Pending</Button>
+                                <Button variant="outline-success" size="sm" className="ms-2" onClick={() => handleStatusUpdate(ticket.ticket_id, "Completed")}>Complete</Button>
                               </>
                             )}
-                            
-                          </>
+                          </div>
                         )}
-                        {
-                              ticket.status === "settle" && (
-                                <FcApproval className="fs-1 ms-5"/>
-                              )
-
-                            }
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      )}
+                        {ticket.status === "Settle" && <FcApproval className="settle-icon" />}
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              ))}
+            </div>
+          )}
+        </Col>
+      </Row>
     </div>
   );
 }

@@ -1,39 +1,21 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState } from 'react';
 
-// Create a Context
 const MyContext = createContext();
 
-// Create a Provider Component
-const MyProvider = ({ children }) => {
-    const [state, setState] = useState({
-        contextname: "", // initial value
-    });
+export function MyProvider({ children }) {
+  const [users, setUsers] = useState([]);
 
-    // Function to update the contextname value
-    const setname = (newStoreValue) => {
-        setState((prevState) => ({
-            ...prevState,
-            contextname: newStoreValue, // update only the contextstore property
-        }));
-    };
+  const addUser = (newUsers) => {
+    setUsers(newUsers); // Expects an array of users
+  };
 
-    console.log(state.contextstore, "stores got using context");
+  return (
+    <MyContext.Provider value={{ users, addUser }}>
+      {children}
+    </MyContext.Provider>
+  );
+}
 
-    return (
-        <MyContext.Provider
-            value={{
-                ...state,
-                setname,
-            }}
-        >
-            {children}
-        </MyContext.Provider>
-    );
-};
-
-// Custom hook to use the context
-const useMyContext = () => {
-    return useContext(MyContext);
-};
-
-export { MyProvider, useMyContext };
+export function useMyContext() {
+  return useContext(MyContext);
+}

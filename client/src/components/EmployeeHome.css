@@ -1,56 +1,131 @@
-/* EmployeeHome.css */
+.jira-container {
+  padding: 20px;
+  background-color: #f4f5f7;
+  min-height: 100vh;
+}
+
+.jira-sidebar {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-title {
+  font-size: 1.5rem;
+  color: #172b4d;
+  margin-bottom: 20px;
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-input {
+  padding: 10px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fff;
+}
+
+.jira-button {
+  font-weight: 500;
+}
+
+.jira-button:hover {
+  background-color: #0052cc;
+  color: #fff;
+}
+
+.jira-main {
+  padding-left: 20px;
+}
+
+.jira-title {
+  font-size: 2rem;
+  color: #172b4d;
+  margin-bottom: 20px;
+}
+
+.task-input-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
 .task-input {
-    border: 1px solid #ddd;
-    transition: border-color 0.3s;
-  }
-  
-  .task-input:focus {
-    border-color: #E10174;
-    box-shadow: 0 0 0 0.2rem rgba(225, 1, 116, 0.25);
-  }
-  
-  .task-display-card {
-    border-radius: 0.5rem;
-    overflow: hidden;
-  }
-  
-  .task-item {
-    border-left: 4px solid #E10174;
-    margin-bottom: 0.5rem;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  
-  .task-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .task-text {
-    white-space: pre-wrap;
-    padding: 0.5rem 0;
-  }
-  
-  .date-badge {
-    background-color: #E10174 !important;
-    border-radius: 20px;
-    font-weight: normal;
-  }
-  
-  /* Animation for new tasks */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .list-group-item {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .date-badge {
-      display: inline-block;
-      margin-bottom: 0.5rem;
-    }
-  }
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 10px;
+  resize: none;
+}
+
+.submit-button {
+  margin-top: 10px;
+  float: right;
+  background-color: #0052cc;
+  border: none;
+}
+
+.submit-button:hover {
+  background-color: #003d99;
+}
+
+.weekly-schedule-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.task-group {
+  margin-bottom: 20px;
+}
+
+.date-badge {
+  font-size: 14px;
+  padding: 8px 12px;
+  background-color: #0052cc !important;
+}
+
+.task-card {
+  background-color: #fff;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s;
+}
+
+.task-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.task-text {
+  font-size: 16px;
+  color: #172b4d;
+  margin-bottom: 0;
+}
+
+.share-button {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.no-tasks-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.no-tasks-card .card-text {
+  color: #6b778c;
+  font-size: 16px;
+}

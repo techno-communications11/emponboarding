@@ -1,23 +1,14 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import {
-  Container,
-  Form,
-  Button,
-  Card,
-  Row,
-  Col,
-  Badge,
-} from "react-bootstrap";
-import { FaCalendarAlt, FaSearch, FaTasks, FaCheck } from "react-icons/fa";
+import { Container, Form, Button, Card, Row, Col, Badge } from "react-bootstrap";
+import { FaCalendarAlt, FaSearch, FaTasks, FaShareAlt, FaCog } from "react-icons/fa";
 import { CiMail } from "react-icons/ci";
 import { MdAddTask } from "react-icons/md";
-// import { TbCapture } from "react-icons/tb";
-import "./EmployeeHome.css";
-import CustomAlert from "./CustomAlert";
-import { FaShareAlt } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import CustomAlert from "./CustomAlert";
+import "./DailyUpdates.css"; // Custom CSS for Jira-like styling
+
 const DailyUpdates = () => {
   const [submittedData, setSubmittedData] = useState([]);
   const [filterDate, setFilterDate] = useState("");
@@ -25,7 +16,6 @@ const DailyUpdates = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const navigate = useNavigate();
 
-  // Fetch tasks on component mount
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -33,20 +23,12 @@ const DailyUpdates = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/gettasks`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch tasks");
-      }
-
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/gettasks`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Failed to fetch tasks");
       const data = await response.json();
-
       setSubmittedData(data);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -55,10 +37,9 @@ const DailyUpdates = () => {
       setLoading(false);
     }
   };
-  const token = localStorage.getItem("token");
-  let id;
-  let role;
 
+  const token = localStorage.getItem("token");
+  let id, role;
   if (token) {
     try {
       const decodedToken = jwtDecode(token);
@@ -67,12 +48,8 @@ const DailyUpdates = () => {
     } catch (error) {
       console.error("Invalid token:", error);
     }
-  } else {
-    console.error("Token not found");
   }
-  console.log(id, role);
 
-  // Convert date string to required format for filtering
   const formatDateForFilter = (dateString) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("en-US");
@@ -80,9 +57,7 @@ const DailyUpdates = () => {
 
   const filteredData = filterDate
     ? submittedData.filter(
-        (item) =>
-          formatDateForFilter(item.createdat) ===
-          formatDateForFilter(filterDate)
+        (item) => formatDateForFilter(item.createdat) === formatDateForFilter(filterDate)
       )
     : submittedData;
 
@@ -105,122 +80,82 @@ const DailyUpdates = () => {
   };
 
   return (
-    <Container fluid className="py-4">
-      {alertMessage && (
-        <CustomAlert message={alertMessage} onClose={closeAlert} />
-      )}
-
-      <Card className="shadow-sm mb-4">
-        <Card.Body>
-          <Row>
-            <Col md={3}></Col>
-            <Col md={7}>
-              <h1
-                className="text-center mb-4 fw-bolder"
-                style={{ color: "#E10174" }}
-              >
-                <FaTasks className="me-2" /> Daily Task Data ...
-              </h1>
-            </Col>
+    <div className="jira-container">
+      {alertMessage && <CustomAlert message={alertMessage} onClose={closeAlert} />}
+      <Row>
+        {/* Sidebar */}
+        <Col md={3} className="jira-sidebar">
+          <h3 className="sidebar-title"><FaCog /> Filters</h3>
+          <div className="filter-section">
+            <Form.Group className="d-flex align-items-center mb-3">
+              <FaCalendarAlt className="me-2 text-primary" />
+              <Form.Control
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="filter-input"
+                placeholder="Filter by Date"
+              />
+            </Form.Group>
             {role !== "Employee" && role && (
-              <Col
-                md={2}
-                className="mb-3 d-flex flex-row align-items-end gap-2"
+              <Button
+                variant="outline-primary"
+                className="w-100 mt-3 jira-button"
+                onClick={() => navigate("/assigntask")}
               >
-                <Button
-                  className="w-100 fw-bolder border-primary"
-                  variant="outline-primary"
-                  onClick={() => navigate("/assigntask")}
-                >
-                  <MdAddTask className="fs-3" /> Assign Task
-                </Button>
-              </Col>
+                <MdAddTask className="me-2" /> Assign Task
+              </Button>
             )}
-          </Row>
+          </div>
+        </Col>
 
-          {/* Input and Send Button */}
-
-          {/* Date Filter */}
-          <Card className="bg-light mb-4">
-            <Card.Body>
-              <Row className="align-items-center">
-                <Col xs={12} md={6} className="mb-2 mb-md-0">
-                  <h5 className="mb-0">
-                    <FaSearch className="me-2" /> Filter Tasks According to Date
-                  </h5>
-                </Col>
-                <Col xs={12} md={6}>
-                  <Form.Group className="d-flex align-items-center mb-0">
-                    <FaCalendarAlt className="me-2 text-primary" />
-                    <Form.Control
-                      type="date"
-                      value={filterDate}
-                      onChange={(e) => setFilterDate(e.target.value)}
-                      className="shadow-sm"
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-
-          {/* Display Submitted Data */}
-          <Card className="shadow-sm task-display-card">
-            <Card.Header className="bg-primary text-white">
-              <h4 className="mb-0">
-                <FaCheck className="me-2" /> Task History
-              </h4>
-            </Card.Header>
-            <Card.Body>
-              {Object.keys(groupedData).length > 0 ? (
-                Object.entries(groupedData).map(([date, items]) => (
-                  <div key={date} className="mb-4">
-                    <h5>
-                      <Badge bg="pink" className="date-badge px-3 py-2">
-                        <FaCalendarAlt className="me-2" /> {date}
-                      </Badge>
-                    </h5>
-
-                    <ul className="list-group mt-2">
-                      {items.map((item) => (
-                        <>
-                          <Badge
-                            bg="success"
-                            className="date-badge  opacity-75 py-2 w-25"
-                          >
-                            <CiMail className="me-2 fs-3" />
-                            Email: {item.email}
-                          </Badge>
-                          <li
-                            key={item.id}
-                            className="list-group-item task-item d-flex justify-content-between align-items-center"
-                          >
-                            <div className="task-text">{item.taskdata}</div>
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() => handleShare(item.taskdata)}
-                            >
-                              <FaShareAlt /> Share
-                            </Button>
-                          </li>
-                        </>
-                      ))}
-                    </ul>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center p-4">
-                  <p className="mb-0 text-muted">
-                    No tasks found for the selected criteria.
-                  </p>
+        {/* Main Content */}
+        <Col md={9} className="jira-main">
+          <h1 className="jira-title"><FaTasks /> Daily Tasks</h1>
+          {loading ? (
+            <div className="text-center p-5">
+              <span className="spinner-border" role="status" />
+            </div>
+          ) : Object.keys(groupedData).length > 0 ? (
+            <div className="task-list">
+              {Object.entries(groupedData).map(([date, items]) => (
+                <div key={date} className="task-group">
+                  <Badge bg="primary" className="date-badge mb-3">
+                    <FaCalendarAlt className="me-2" /> {date}
+                  </Badge>
+                  {items.map((item) => (
+                    <Card key={item.id} className="task-card">
+                      <Card.Body className="d-flex justify-content-between gap-2 align-items-center ">
+                        <div>
+                          <Card.Text className="task-text">{item.taskdata}</Card.Text>
+                          <div className="task-meta">
+                            <Badge bg="success" className="email-badge">
+                              <CiMail className="me-2" /> {item.email}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline-success"
+                          size="sm"
+                          className="share-button"
+                          onClick={() => handleShare(item.taskdata)}
+                        >
+                          <FaShareAlt /> Share
+                        </Button>
+                      </Card.Body>
+                    </Card>
+                  ))}
                 </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Card.Body>
-      </Card>
-    </Container>
+              ))}
+            </div>
+          ) : (
+            <Card className="text-center p-4 no-tasks-card">
+              <Card.Text>No tasks found for the selected criteria.</Card.Text>
+            </Card>
+          )}
+        </Col>
+      </Row>
+    </div>
   );
 };
 

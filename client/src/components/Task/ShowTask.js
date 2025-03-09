@@ -1,171 +1,195 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  FaTasks, 
-  FaCalendarAlt, 
-  FaClock, 
-  FaExclamationTriangle, 
-  FaUserTie, 
-  FaTrashAlt, 
-  FaSpinner, 
-  FaExclamationCircle 
-} from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import {
+  FaTasks,
+  FaCalendarAlt,
+  FaClock,
+  FaExclamationTriangle,
+  FaUserTie,
+  FaTrashAlt,
+  FaSpinner,
+} from "react-icons/fa";
+import { useMyContext } from "../MyContext";
+import { Form } from "react-bootstrap";
+import "./ShowTask.css"; // Custom CSS for Jira-like styling
+import { jwtDecode } from "jwt-decode";
 
 function ShowTask() {
-  const [tasks, setTasks] = useState([]); // State to store task data
-  const [loading, setLoading] = useState(true); // State to manage loading state
-  const [error, setError] = useState(null); // State to handle errors
-   
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { users } = useMyContext();
+  const [filterDate, setFilterDate] = useState("");
+  const [role, setRole] = useState("");
+  const [userId, setUserId] = useState("");
 
-  // Fetch task data from the backend
+  // Decode token and set role/userId
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setRole(decodedToken.role);
+        setUserId(decodedToken.id);
+      } catch (error) {
+        console.error("Invalid token:", error);
+        setError("Invalid token. Please log in again.");
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const fetchTaskData = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/taskdata`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch task data");
-        }
+        if (!response.ok) throw new Error("Failed to fetch task data");
         const data = await response.json();
-        setTasks(data.data); // Update state with fetched data
+        
+        let finalTasks = data.data;
+
+        // Filter based on role
+        if (role === "Employee") {
+          finalTasks = data.data.filter((task) => task.user_id === userId);
+        } 
+        // Filter by selected employees
+        else if (users && users.length > 0) {
+          const userNames = users.map((user) => user.name);
+          console.log("Selected user names:", userNames);
+          finalTasks = data.data.filter((task) => 
+            userNames.includes(task.employee_name)
+          );
+        }
+
+        // Apply date filter if filterDate exists
+        if (filterDate) {
+          finalTasks = finalTasks.filter((task) => {
+            const taskDueDate = new Date(task.created_at).toISOString().split("T")[0];
+            return taskDueDate === filterDate;
+          });
+        }
+
+        console.log("Filtered tasks:", finalTasks); // Debug log
+        setTasks(finalTasks);
       } catch (error) {
-        setError(error.message); // Set error message
+        setError(error.message);
       } finally {
-        setLoading(false); // Set loading to false
+        setLoading(false);
       }
     };
-    
+
     fetchTaskData();
-  }, []);
+  }, [users, filterDate, role, userId]);
 
-  // Handle delete task
   const handleDelete = (taskId) => {
-    // Add confirmation dialog
     if (window.confirm("Are you sure you want to delete this task?")) {
-      // Here you would typically call an API to delete the task
-      // For now, we'll just filter it out from the UI
-      setTasks(tasks.filter(task => task.task_id !== taskId));
+      setTasks(tasks.filter((task) => task.task_id !== taskId));
     }
   };
 
-  // Get priority badge color
   const getPriorityBadgeColor = (priority) => {
-    switch(priority.toLowerCase()) {
-      case 'high':
-        return 'danger';
-      case 'medium':
-        return 'warning';
-      case 'low':
-        return 'info';
+    switch (priority.toLowerCase()) {
+      case "high":
+        return "#d93025"; // Jira-like red
+      case "medium":
+        return "#f59e0b"; // Amber
+      case "low":
+        return "#10b981"; // Green
       default:
-        return 'secondary';
+        return "#6b778c"; // Gray
     }
   };
 
-  // Format date with options
   const formatDate = (dateString) => {
-    const options = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
-  // Display loading state with spinner
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: "50vh" }}>
-        <div className="text-center">
-          <FaSpinner className="fa-spin mb-3" size={50} color="#007bff" />
-          <h4>Loading tasks...</h4>
-        </div>
+      <div className="jira-loading">
+        <FaSpinner className="fa-spin text-primary" size={40} />
+        <p>Loading tasks...</p>
       </div>
     );
   }
 
-  // Display error message
   if (error) {
     return (
-      <div className="alert alert-danger mx-auto mt-5" style={{ maxWidth: "600px" }}>
-        <div className="d-flex align-items-center">
-          <FaExclamationCircle size={24} className="me-3" />
-          <div>
-            <h4 className="alert-heading">Error Loading Tasks</h4>
-            <p className="mb-0">{error}</p>
-          </div>
-        </div>
+      <div className="jira-error">
+        <FaExclamationTriangle size={30} className="text-danger" />
+        <h4>Error Loading Tasks</h4>
+        <p>{error}</p>
       </div>
     );
   }
 
-  // Display task data as cards - one card per row
   return (
-    <div className="container py-4">
-      <div className="d-flex align-items-center justify-content-center mb-4">
-        <FaTasks className="me-2" size={24} />
-        <h2 className="mb-0">Task Management Dashboard</h2>
+    <div className="jira-task-container">
+      <div className="jira-header">
+        <h2 className="jira-title">
+          <FaTasks className="me-2" /> Task Management
+        </h2>
+        <Form.Group className="jira-date-filter">
+          <FaCalendarAlt className="me-2 text-primary" />
+          <Form.Control
+            type="date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="jira-filter-input"
+          />
+        </Form.Group>
       </div>
 
       {tasks.length > 0 ? (
-        tasks.map((task, index) => (
-          <div key={index} className="card shadow mb-4 border-0 task-card">
-            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-              <div className="d-flex align-items-center">
-                <FaUserTie className="me-2" />
-                <h5 className="mb-0">{task.employee_name}</h5>
+        <div className="jira-task-list">
+          {tasks.map((task) => (
+            <div key={task.task_id} className="jira-task-card">
+              <div className="jira-task-header">
+                <div className="jira-employee">
+                  <FaUserTie className="me-2" />
+                  <span>{task.employee_name}</span>
+                </div>
+                <span
+                  className="jira-priority-badge"
+                  style={{ backgroundColor: getPriorityBadgeColor(task.priority) }}
+                >
+                  <FaExclamationTriangle className="me-1" />
+                  {task.priority}
+                </span>
               </div>
-              <span className={`badge bg-${getPriorityBadgeColor(task.priority)} d-flex align-items-center`}>
-                <FaExclamationTriangle className="me-1" />
-                {task.priority} Priority
-              </span>
-            </div>
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-10">
-                  <div className="mb-3">
-                    <h5 className="text-dark fw-bolder">Task</h5>
-                    <p className="card-text">{task.description}</p>
-                  </div>
-                  
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <div className="d-flex align-items-center text-muted">
-                        <FaCalendarAlt className="me-2" />
-                        <div>
-                          <small>Due Date</small>
-                          <p className="mb-0 text-dark fw-bold">{formatDate(task.due_date)}</p>
-                        </div>
-                      </div>
+              <div className="jira-task-body">
+                <div className="jira-task-content">
+                  <h5 className="jira-task-title">Task</h5>
+                  <p className="jira-task-desc">{task.description}</p>
+                  <div className="jira-task-meta">
+                    <div className="jira-task-date">
+                      <FaCalendarAlt className="me-2" />
+                      <span>Due: {formatDate(task.due_date)}</span>
                     </div>
-                    <div className="col-md-6">
-                      <div className="d-flex align-items-center text-muted">
-                        <FaClock className="me-2" />
-                        <div>
-                          <small>Created At</small>
-                          <p className="mb-0 text-dark fw-bold">{formatDate(task.created_at)}</p>
-                        </div>
-                      </div>
+                    <div className="jira-task-date">
+                      <FaClock className="me-2" />
+                      <span>Created: {formatDate(task.created_at)}</span>
                     </div>
                   </div>
                 </div>
-                <div className="col-md-2 d-flex align-items-center justify-content-center">
-                  <button 
-                    className="btn btn-danger btn-lg rounded-circle" 
-                    onClick={() => handleDelete(task.task_id)}
-                    title="Delete Task"
-                  >
-                    <FaTrashAlt />
-                  </button>
-                </div>
+                <button
+                  className="btn"
+                  onClick={() => handleDelete(task.task_id)}
+                >
+                  <FaTrashAlt /> Delete
+                </button>
               </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       ) : (
-        <div className="text-center p-5 bg-light rounded">
-          <FaTasks size={50} className="text-muted mb-3" />
-          <h4 className="text-muted">No tasks found</h4>
-          <p className="text-muted">Create a new task to get started</p>
+        <div className="jira-no-tasks">
+          <FaTasks size={50} className="text-muted" />
+          <h4>No tasks found</h4>
+          <p>Create a new task to get started</p>
         </div>
       )}
     </div>

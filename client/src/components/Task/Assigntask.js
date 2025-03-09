@@ -2,55 +2,51 @@ import React, { useState } from "react";
 import { Row, Col, Container } from "react-bootstrap";
 import { IoMdAdd } from "react-icons/io";
 import TaskForm from "./TaskForm";
-import GetUsers from "./GetUsers";
 import UserSideNav from "./UserSideNav";
 import ShowTask from "./ShowTask";
+import "./Assigntask.css"; // Custom CSS for Jira-like styling
+
 function Assigntask() {
-     const [clicked,setClicked]=useState(false);
-     const results=GetUsers().data;
+  const [clicked, setClicked] = useState(false);
+
   const handleClick = () => {
- console.log(results)
     setClicked(true);
   };
 
   return (
-    <Container fluid className="p-3">
-        <Row>
-            <Col md={3}>
-            <UserSideNav/>
-            </Col>
-            <Col md={9}>
-            {clicked?<TaskForm setClicked={setClicked}/>:<Row className="justify-content-center">
-        <Col xs={12} md={10} lg={10}>
-          <div 
-            className="d-flex align-items-center shadow p-4  my-4 bg-white rounded border-start border-primary border-4"
-            onClick={handleClick}
-            style={{ 
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-              borderRadius: "8px"
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-3px)"}
-            onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
-          >
-            <div className="d-flex align-items-center w-100 justify-content-center">
-              <div className="d-flex align-items-center">
-                <div className="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
-                  <IoMdAdd className="fs-2 text-primary" />
-                </div>
-                <span className="fs-4 fw-semibold text-primary">Assign Task</span>
-              </div>
-            </div>
-          </div>
-        </Col>
-      </Row>}
+    <Container fluid className="jira-container">
       <Row>
-      <ShowTask/>
+        {/* Sidebar */}
+        <Col md={3} className="jira-sidebar">
+          <UserSideNav />
+        </Col>
+
+        {/* Main Content */}
+        <Col md={9} className="jira-main">
+          {clicked ? (
+            <TaskForm setClicked={setClicked} />
+          ) : (
+            <Row className="justify-content-center mb-3">
+              <Col xs={12} md={10} lg={12}>
+                <div
+                  className="jira-assign-card"
+                  onClick={handleClick}
+                >
+                  <div className="d-flex align-items-center justify-content-center w-100">
+                    <div className="jira-icon-circle me-3">
+                      <IoMdAdd className="jira-icon" />
+                    </div>
+                    <span className="jira-assign-text">Assign Task</span>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          )}
+          <Row>
+            <ShowTask className="jira-show-task" />
+          </Row>
+        </Col>
       </Row>
-            </Col>
-        </Row>
-      
-      
     </Container>
   );
 }

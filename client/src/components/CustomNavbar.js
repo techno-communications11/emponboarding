@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RiLogoutBoxRLine } from "react-icons/ri";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import "./CustomNavbar.css"; // Custom CSS for Jira-like styling
 
 const CustomNavbar = () => {
   const [role, setRole] = useState("");
@@ -24,13 +25,10 @@ const CustomNavbar = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    
-      navigate("/");
-     
+    navigate("/");
   };
 
   const handleNavLinkClick = () => {
-    // Close the navbar with smooth animation by toggling the collapse class
     const navbar = document.querySelector(".navbar-collapse");
     if (navbar) {
       navbar.classList.remove("show");
@@ -38,108 +36,95 @@ const CustomNavbar = () => {
   };
 
   return (
-    <Navbar expand="lg" bg="light" variant="light" className="shadow-sm">
+    <Navbar expand="lg" className="jira-navbar shadow-sm">
       <Container fluid>
         {/* Logo and Brand Name */}
         <Navbar.Brand
           as={Link}
           to={
-            role === "Admin" ? "/adminDashboard" : role==='Employee'?"/employeehome": "/userDashboard"
+            role === "Admin"
+              ? "/adminDashboard"
+              : role === "Employee"
+              ? "/employeehome"
+              : "/userDashboard"
           }
           className="d-flex align-items-center"
         >
-          <img src="logo.webp" height={40} alt="Logo" />
-          <h3 className="ms-2 fs-6 mb-0 text-truncate">
-            Techno Communications LLC
-          </h3>
+          <img src="logo.webp" height={40} alt="Logo" className="jira-logo" />
+          <span className="jira-brand ms-2">Techno Communications LLC</span>
         </Navbar.Brand>
 
         {/* Toggle for mobile view */}
-        <Navbar.Toggle aria-controls="navbarNav" />
+        <Navbar.Toggle aria-controls="navbarNav" className="jira-toggle" />
 
         {/* Collapsible menu */}
-        <Navbar.Collapse id="navbarNav" className="fs-6">
-          <Nav className="ms-auto d-flex align-items-start">
-            {/* Shared Link */}
-            {(role === "Contract") && (
+        <Navbar.Collapse id="navbarNav">
+          <Nav className="ms-auto d-flex align-items-center">
+            {/* Shared Links */}
+            {role === "Contract" && (
               <Nav.Link
                 as={Link}
                 to="/contract"
-                className="fw-bold mx-1"
+                className="fw-bolder jira-nav-link fw-bolder "
                 onClick={handleNavLinkClick}
               >
-                contract Data
+                Contract Data
               </Nav.Link>
             )}
-            {(role === "Training Team") && (
+            {role === "Training Team" && (
               <Nav.Link
                 as={Link}
                 to="/training"
-                className="fw-bold mx-1"
+                className="jira-nav-link fw-bolder"
                 onClick={handleNavLinkClick}
               >
                 Training Data
               </Nav.Link>
             )}
-            {(role === "Ntid Setup team") && (
+            {role === "Ntid Setup team" && (
               <Nav.Link
                 as={Link}
                 to="/ntidsetup"
-                className="fw-bold mx-1"
+                className="jira-nav-link fw-bolder"
                 onClick={handleNavLinkClick}
               >
-                NTID SetUp Data
+                NTID Setup Data
               </Nav.Link>
             )}
-            {(role === "Ntid Creation Team") && (
+            {role === "Ntid Creation Team" && (
               <Nav.Link
                 as={Link}
                 to="/ntidcreation"
-                className="fw-bold mx-1"
+                className="jira-nav-link fw-bolder"
                 onClick={handleNavLinkClick}
               >
                 NTID Creation Data
               </Nav.Link>
             )}
-            {/* {role==='Employee'&&(
-              <>
-               <Nav.Link
-                  as={Link}
-                  to="/employeehome"
-                  className="fw-bold mx-1"
-                  onClick={handleNavLinkClick}
-                >
-                  Shedule
-                </Nav.Link>
-              </>
-
-            )
-            
-            } */}
 
             {/* Admin-only Links */}
             {role === "Admin" && (
               <>
-              <Nav.Link
+                <Nav.Link
                   as={Link}
                   to="/viewticket"
-                  className="fw-bold mx-1"
+                  className="jira-nav-link fw-bolder fw-bolder"
                   onClick={handleNavLinkClick}
                 >
                   Tickets
                 </Nav.Link>
-              <Nav.Link
+                <Nav.Link
                   as={Link}
                   to="/shedule"
-                  className="fw-bold mx-1"
+                  className="jira-nav-link fw-bolder"
                   onClick={handleNavLinkClick}
                 >
-                  Shedule
+                  Schedule
                 </Nav.Link>
                 <Nav.Link
                   as={Link}
                   to="/dailyupdates"
-                  className="fw-bold mx-1"
+                  className="jira-nav-link fw-bolder"
                   onClick={handleNavLinkClick}
                 >
                   Daily Task
@@ -147,16 +132,15 @@ const CustomNavbar = () => {
                 <Nav.Link
                   as={Link}
                   to="/register"
-                  className="fw-bold mx-1"
+                  className="jira-nav-link fw-bolder"
                   onClick={handleNavLinkClick}
                 >
                   Register
                 </Nav.Link>
-               
                 <Nav.Link
                   as={Link}
                   to="/resetpassword"
-                  className="fw-bold mx-1"
+                  className="jira-nav-link fw-bolder"
                   onClick={handleNavLinkClick}
                 >
                   Reset Password
@@ -166,11 +150,11 @@ const CustomNavbar = () => {
 
             {/* Logout Button */}
             <Button
-              variant="danger"
-              className="fw-bold mx-1"
+              variant="outline-danger"
+              className="jira-logout-btn ms-2"
               onClick={handleLogout}
             >
-              <RiLogoutBoxRLine className="fw-bold" /> Logout
+              <RiLogoutBoxRLine className="me-1" /> Logout
             </Button>
           </Nav>
         </Navbar.Collapse>

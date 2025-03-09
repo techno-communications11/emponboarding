@@ -3,22 +3,19 @@ import { Container, Form, Button } from "react-bootstrap";
 import { FaTicketAlt, FaUser, FaAlignLeft, FaExclamationCircle } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import CustomAlert from "./CustomAlert";
+import "./RaiseTicket.css"; // Custom CSS for Jira-like styling
 
 function RaiseTicket({ onTicketSubmit }) {
-  // State to manage form inputs
   const [formData, setFormData] = useState({
     name: "",
     title: "",
     description: "",
-    priority: "Medium", // Default value
+    priority: "Medium",
   });
-    const [alertMessage, setAlertMessage] = useState("");
-  const closeAlert = () => setAlertMessage("");
+  const [alertMessage, setAlertMessage] = useState("");
 
-  // Fetch token and decode employee ID
   const token = localStorage.getItem("token");
   let id;
-
   if (token) {
     try {
       const decodedToken = jwtDecode(token);
@@ -26,11 +23,8 @@ function RaiseTicket({ onTicketSubmit }) {
     } catch (error) {
       console.error("Invalid token:", error);
     }
-  } else {
-    console.error("Token not found");
   }
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -39,7 +33,6 @@ function RaiseTicket({ onTicketSubmit }) {
     }));
   };
 
-  // Handle form submission with API call
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!id) {
@@ -49,7 +42,7 @@ function RaiseTicket({ onTicketSubmit }) {
 
     try {
       const ticketData = {
-        employee_id: id, // From JWT token
+        employee_id: id,
         name: formData.name,
         title: formData.title,
         description: formData.description,
@@ -62,24 +55,16 @@ function RaiseTicket({ onTicketSubmit }) {
         body: JSON.stringify(ticketData),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to create ticket");
-      }
+      if (!response.ok) throw new Error("Failed to create ticket");
 
-      const result = await response.json();
-      console.log("Ticket Submitted:", result);
       setAlertMessage("Ticket raised successfully!");
-
-      // Reset form
       setFormData({
         name: "",
         title: "",
         description: "",
         priority: "Medium",
       });
-
-      // Call onTicketSubmit to close modal if provided
-      if (onTicketSubmit) onTicketSubmit();
+      if (onTicketSubmit) setTimeout(onTicketSubmit, 2000); // Delay to show alert
     } catch (error) {
       console.error("Error submitting ticket:", error);
       setAlertMessage("Failed to raise ticket. Please try again.");
@@ -87,19 +72,18 @@ function RaiseTicket({ onTicketSubmit }) {
   };
 
   return (
-    <Container className="mt-2" style={{ maxWidth: "600px" }}>
-         {alertMessage && (
-        <CustomAlert message={alertMessage} onClose={closeAlert} />
-      )}
-      <h1 className="text-center mb-4 fw-bolder" style={{ color: "#E10174" }}>
-        <FaTicketAlt className="me-2 fw-bolder" style={{ color: "#E10174" }} /> Raise a Ticket
-      </h1>
-      <Form onSubmit={handleSubmit}>
+    <Container className="jira-ticket-container">
+      {alertMessage && <CustomAlert message={alertMessage} onClose={() => setAlertMessage("")} />}
+      <form onSubmit={handleSubmit} className="jira-ticket-form">
+        <h2 className="jira-form-title">
+          <FaTicketAlt className="me-2" /> Raise a Ticket
+        </h2>
+
         {/* User Name */}
-        <Form.Group className="mb-3">
-          <Form.Label>
+        <div className="jira-form-group">
+          <label className="jira-label">
             <FaUser className="me-2" /> User Name
-          </Form.Label>
+          </label>
           <Form.Control
             type="text"
             name="name"
@@ -107,14 +91,15 @@ function RaiseTicket({ onTicketSubmit }) {
             onChange={handleChange}
             placeholder="Enter your name"
             required
+            className="jira-input"
           />
-        </Form.Group>
+        </div>
 
         {/* Ticket Title */}
-        <Form.Group className="mb-3">
-          <Form.Label>
+        <div className="jira-form-group">
+          <label className="jira-label">
             <FaTicketAlt className="me-2" /> Ticket Title
-          </Form.Label>
+          </label>
           <Form.Control
             type="text"
             name="title"
@@ -122,14 +107,15 @@ function RaiseTicket({ onTicketSubmit }) {
             onChange={handleChange}
             placeholder="Enter ticket title"
             required
+            className="jira-input"
           />
-        </Form.Group>
+        </div>
 
         {/* Ticket Description */}
-        <Form.Group className="mb-3">
-          <Form.Label>
+        <div className="jira-form-group">
+          <label className="jira-label">
             <FaAlignLeft className="me-2" /> Description
-          </Form.Label>
+          </label>
           <Form.Control
             as="textarea"
             name="description"
@@ -138,32 +124,34 @@ function RaiseTicket({ onTicketSubmit }) {
             placeholder="Describe the issue or request"
             rows={5}
             required
+            className="jira-textarea"
           />
-        </Form.Group>
+        </div>
 
         {/* Priority Selection */}
-        <Form.Group className="mb-4">
-          <Form.Label>
+        <div className="jira-form-group">
+          <label className="jira-label">
             <FaExclamationCircle className="me-2" /> Priority
-          </Form.Label>
+          </label>
           <Form.Select
             name="priority"
             value={formData.priority}
             onChange={handleChange}
             required
+            className="jira-select"
           >
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
             <option value="Urgent">Urgent</option>
           </Form.Select>
-        </Form.Group>
+        </div>
 
         {/* Submit Button */}
-        <Button variant="primary" type="submit" className="w-100">
+        <Button type="submit" className="jira-submit-btn">
           Submit Ticket
         </Button>
-      </Form>
+      </form>
     </Container>
   );
 }

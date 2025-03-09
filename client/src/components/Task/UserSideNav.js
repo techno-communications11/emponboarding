@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaUser, FaUserCheck, FaUserSlash, FaSpinner } from 'react-icons/fa';
 import GetUsers from './GetUsers';
-import { Row,Col } from 'react-bootstrap';
+import { Row, Col } from 'react-bootstrap';
 import { useMyContext } from '../MyContext';
+import './UserSideNav.css'; // Custom CSS for Jira-like styling
 
 function UserSideNav() {
   const [availableUsers, setAvailableUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { setname } = useMyContext();
+  const { addUser } = useMyContext();
 
-  // Fetch users on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const result = await GetUsers(); // Resolving the Promise
+        const result = await GetUsers();
         setAvailableUsers(result);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -27,47 +27,47 @@ function UserSideNav() {
     fetchData();
   }, []);
 
-  // Handle user selection
   const handleUserSelect = (user) => {
     setSelectedUsers((prevSelectedUsers) => {
-      // If user is already selected, remove them
+      let updatedSelectedUsers;
       if (prevSelectedUsers.find((u) => u.name === user.name)) {
-        return prevSelectedUsers.filter((u) => u.name !== user.name);
+        updatedSelectedUsers = prevSelectedUsers.filter((u) => u.name !== user.name);
+      } else {
+        updatedSelectedUsers = [...prevSelectedUsers, user];
       }
-      // Otherwise, add them to the selection
-      else {
-        return [...prevSelectedUsers, user];
-      }
+      addUser(updatedSelectedUsers);
+      return updatedSelectedUsers;
     });
   };
 
-  // Filter users based on search query
+  const handleClearAll = () => {
+    setSelectedUsers([]);
+    addUser([]);
+  };
+
   const filteredUsers = availableUsers.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="card shadow-sm">
-      <div className="card-header text-white">
-        <Row>
-            <Col md={6}>
-            <h5 className="mb-0" style={{color:"#E10174"}}>Filter By Users</h5>
-            </Col>
-            <Col md={6}>
-            <span className="text-end small" style={{color:"#E10174"}}>Total: {filteredUsers.length} users</span>
-            </Col>
+    <div className="jira-sidenav">
+      <div className="jira-sidenav-header">
+        <Row className="align-items-center">
+          <Col xs={6}>
+            <h5 className="jira-sidenav-title">Filter by Users</h5>
+          </Col>
+          <Col xs={6} className="text-end">
+            <span className="jira-total-badge">{filteredUsers.length} Total</span>
+          </Col>
         </Row>
-        
       </div>
-      <div className="card-body">
+      <div className="jira-sidenav-body">
         {/* Search Input */}
-        <div className="input-group mb-3">
-          <span className="input-group-text">
-            <FaSearch />
-          </span>
+        <div className="jira-search-wrapper">
+          <FaSearch className="jira-search-icon" />
           <input
             type="text"
-            className="form-control"
+            className="jira-search-input"
             placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -75,15 +75,15 @@ function UserSideNav() {
         </div>
 
         {/* Selected Users Counter */}
-        <div className="d-flex justify-content-between mb-3">
-          <span className="badge bg-success">
+        <div className="jira-selected-info">
+          <span className="jira-selected-badge">
             <FaUserCheck className="me-1" />
-            {selectedUsers.length} selected
+            {selectedUsers.length} Selected
           </span>
           {selectedUsers.length > 0 && (
-            <button 
-              className="btn btn-sm btn-outline-danger"
-              onClick={() => setSelectedUsers([])}
+            <button
+              className="jira-clear-btn"
+              onClick={handleClearAll}
             >
               <FaUserSlash className="me-1" />
               Clear All
@@ -93,37 +93,31 @@ function UserSideNav() {
 
         {/* Display Users */}
         {loading ? (
-          <div className="d-flex justify-content-center my-4">
-            <FaSpinner className="fa-spin" />
-            <span className="ms-2">Loading users...</span>
+          <div className="jira-loading">
+            <FaSpinner className="fa-spin me-2" />
+            Loading users...
           </div>
         ) : (
-          <div className="list-group user-list">
+          <div className="jira-user-list">
             {filteredUsers.length > 0 ? (
-              filteredUsers.map((user,index) => (
-                <div 
-                  key={index} 
-                  className={`list-group-item shadow-lg d-flex flex-row gap-2 list-group-item-action d-flex align-items-center ${
-                    selectedUsers.some((u) => u.name === user.name) ? "active" : ""
-                  }`}
+              filteredUsers.map((user, index) => (
+                <div
+                  key={index}
+                  className={`jira-user-item ${selectedUsers.some((u) => u.name === user.name) ? 'selected' : ''}`}
                   onClick={() => handleUserSelect(user)}
                 >
-                  
-                  <div className="ms-2">
-                    <FaUser className="me-2" />
-                    {user.name}
-                  </div>
+                  <FaUser className="jira-user-icon" />
+                  <span>{user.name}</span>
                 </div>
               ))
             ) : (
-              <div className="text-center text-muted p-3">
+              <div className="jira-no-users">
                 No users found matching "{searchQuery}"
               </div>
             )}
           </div>
         )}
       </div>
-      
     </div>
   );
 }
