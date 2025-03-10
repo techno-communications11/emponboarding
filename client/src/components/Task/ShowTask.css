@@ -133,6 +133,10 @@
     color: #172b4d;
     font-weight: 500;
   }
+  .button:hover{
+    color: #f60818;
+    font-weight: bolder;
+  }
   
   /* Responsive adjustments */
   @media (max-width: 768px) {
@@ -149,5 +153,8 @@
     }
     .jira-delete-btn {
       width: 100%;
+    }
+    .button:hover{
+      color:"red"
     }
   }

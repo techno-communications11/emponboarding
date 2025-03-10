@@ -1,12 +1,13 @@
-import React, {  useState } from 'react';
-import { 
-  FaLock, 
-  FaEnvelope, 
-  FaEye, 
-  FaEyeSlash, 
-  FaCheckCircle, 
-  FaExclamationTriangle 
+import React, { useState } from 'react';
+import {
+  FaLock,
+  FaEnvelope,
+  FaEye,
+  FaEyeSlash,
+  FaCheckCircle,
+  FaExclamationTriangle,
 } from 'react-icons/fa';
+import './resetpassword.css';
 
 const UpdatePassword = () => {
   const [userData, setUserData] = useState({ email: '', password: '' });
@@ -14,14 +15,13 @@ const UpdatePassword = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-   
+
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
-      // Simulated API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       setSuccess('Password reset instructions sent to your email');
       setError('');
       setUserData({ email: '', password: '' });
@@ -33,99 +33,124 @@ const UpdatePassword = () => {
   };
 
   return (
-    <div style={{
-      backgroundImage: "url(/reset.avif)",
-      backgroundSize: "cover", // Ensure the image covers the entire container without distortion
-      backgroundPosition: "center", // Ensure the image is centered
-      backgroundAttachment: "fixed", // Keeps the image fixed while scrolling
-      backgroundRepeat: "no-repeat", // Prevents repetition of the background
-      minHeight: "90vh", // Ensures the container takes up the full viewport height
-      objectFit: "cover" // Ensures the background image covers the area correctly
-    }} className="d-flex align-items-center justify-content-center">
-    
-      <div  className="card   shadow-lg border-0 col-md-6 col-lg-4">
-        <div className="card-body p-4 p-md-5">
-          {/* Header Section */}
-          <div className="text-center mb-4">
-            <div className="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-              <FaLock className="text-primary" size={24} />
+    <div className="d-flex min-vh-100 bg-light">
+      <div className="container my-auto">
+        <div className="row justify-content-center">
+          <div className="col-md-8 col-lg-6 col-xl-5">
+            <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
+              <div className="card-body p-4 p-md-5">
+                {/* Header Section */}
+                <div className="text-center mb-5">
+                  <div className="avatar avatar-lg bg-primary bg-opacity-10 text-primary rounded-circle mb-3">
+                    <FaLock size={28} />
+                  </div>
+                  <h3 className="fw-bold mb-2">Reset Your Password</h3>
+                  <p className="text-muted mb-0">
+                    Enter your email and new password below
+                  </p>
+                </div>
+
+                {/* Form Section */}
+                <form onSubmit={handlePasswordReset}>
+                  {/* Email Input */}
+                  <div className="input-group mb-4">
+                    <span className="input-group-text border-end-0 bg-transparent">
+                      <FaEnvelope className="text-muted" size={18} />
+                    </span>
+                    <input
+                      type="email"
+                      className="form-control border-start-0 ps-0 shadow-none border"
+                      placeholder="Email address"
+                      value={userData.email}
+                      onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  {/* Password Input */}
+                  <div className="input-group mb-4 position-relative">
+                    <span className="input-group-text border-end-0 bg-transparent">
+                      <FaLock className="text-muted" size={18} />
+                    </span>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="form-control border-start-0 ps-0 shadow-none border"
+                      placeholder="New password"
+                      value={userData.password}
+                      onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary border-0 bg-transparent position-absolute end-0 top-50 translate-middle-y me-3"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <FaEyeSlash className="text-muted" size={18} />
+                      ) : (
+                        <FaEye className="text-muted" size={18} />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    className="btn btn-primary w-100 py-3 mb-4 rounded-3"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Processing...
+                      </>
+                    ) : (
+                      'Reset Password'
+                    )}
+                  </button>
+                </form>
+
+                {/* Alerts */}
+                <div className="position-relative">
+                  {success && (
+                    <div
+                      className="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0"
+                      role="alert"
+                    >
+                      <FaCheckCircle className="me-2" size={18} />
+                      <div>{success}</div>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                  )}
+                  {error && (
+                    <div
+                      className="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0"
+                      role="alert"
+                    >
+                      <FaExclamationTriangle className="me-2" size={18} />
+                      <div>{error}</div>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <h2 className="fw-bold">Reset Password</h2>
-            <p className="text-muted">Enter your email and new password below</p>
           </div>
-
-          {/* Form Section */}
-          <form onSubmit={handlePasswordReset}>
-            <div className="mb-4 position-relative">
-              <div className="position-absolute top-50 translate-middle-y ms-3">
-                <FaEnvelope className="text-muted" size={18} />
-              </div>
-              <input
-                type="email"
-                className="form-control form-control-lg ps-5"
-                placeholder="Email address"
-                value={userData.email}
-                onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="mb-4 position-relative">
-              <div className="position-absolute top-50 translate-middle-y ms-3">
-                <FaLock className="text-muted" size={18} />
-              </div>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                className="form-control form-control-lg ps-5"
-                placeholder="New password"
-                value={userData.password}
-                onChange={(e) => setUserData({ ...userData, password: e.target.value })}
-                required
-              />
-              <button
-                type="button"
-                className="btn position-absolute top-50 end-0 translate-middle-y me-2 border-0"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <FaEyeSlash className="text-muted" size={18} />
-                ) : (
-                  <FaEye className="text-muted" size={18} />
-                )}
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              className="btn btn-primary w-100 btn-lg mb-4"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Processing...
-                </>
-              ) : (
-                'Reset Password'
-              )}
-            </button>
-          </form>
-
-          {/* Success Message */}
-          {success && (
-            <div className="alert alert-success d-flex align-items-center fade show" role="alert">
-              <FaCheckCircle className="me-2" size={18} />
-              <div>{success}</div>
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="alert alert-danger d-flex align-items-center fade show" role="alert">
-              <FaExclamationTriangle className="me-2" size={18} />
-              <div>{error}</div>
-            </div>
-          )}
         </div>
       </div>
     </div>

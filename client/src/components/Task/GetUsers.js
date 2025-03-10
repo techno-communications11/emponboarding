@@ -7,7 +7,7 @@ const GetUsers = async () => {
       },
     });
     const data = await response.json();
-     console.log(data.data,'datataa');
+    //  console.log(data.data,'datataa');
      const result=data.data
     return result;
   } catch (err) {

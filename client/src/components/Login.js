@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash,FaEnvelope,FaLock } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
@@ -50,9 +50,8 @@ const Login = () => {
 
         if (role === "Admin") {
           navigate("/admindashboard");
-        } else if(role==='Employee'){
+        } else if (role === "Employee") {
           navigate("/employeehome");
-
         } else {
           navigate("/userdashboard");
         }
@@ -65,18 +64,18 @@ const Login = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
       className="container-fluid min-vh-100 d-flex flex-column justify-content-center position-relative"
       style={{
         background: 'linear-gradient(135deg, #ffffff 0%, #f3e7e9 100%)',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
       {/* Decorative Shapes */}
-      <div 
+      <div
         className="position-absolute"
         style={{
           top: '-10%',
@@ -85,10 +84,10 @@ const Login = () => {
           height: '300px',
           background: 'rgba(225, 1, 116, 0.1)',
           borderRadius: '50%',
-          transform: 'rotate(45deg)'
+          transform: 'rotate(45deg)',
         }}
       />
-      <div 
+      <div
         className="position-absolute"
         style={{
           bottom: '-10%',
@@ -97,7 +96,7 @@ const Login = () => {
           height: '400px',
           background: 'rgba(225, 1, 116, 0.05)',
           borderRadius: '50%',
-          transform: 'rotate(-45deg)'
+          transform: 'rotate(-45deg)',
         }}
       />
 
@@ -112,15 +111,15 @@ const Login = () => {
           fontWeight: "bold",
           fontSize: "4rem",
           letterSpacing: "2px",
-          textShadow: '2px 2px 4px rgba(225, 1, 116, 0.1)'
+          textShadow: '2px 2px 4px rgba(225, 1, 116, 0.1)',
         }}
       >
-        Welcome Back ..
+        Welcome Back!
       </motion.h1>
 
       <div className="row w-100 m-0">
         {/* Left side with logo */}
-        <motion.div 
+        <motion.div
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -130,44 +129,51 @@ const Login = () => {
             transition={{ type: "spring", stiffness: 300 }}
             src="logoT.webp"
             alt="Logo"
-            className="img-fluid w-100  "
-           
+            className="img-fluid w-75"
           />
         </motion.div>
 
         {/* Right side with login form */}
-        <motion.div 
+        <motion.div
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="col-md-6 d-flex justify-content-center align-items-center p-5"
         >
-          <div 
-            className="card shadow-lg w-75 border-0 rounded-3"
+          <div
+            className="card shadow-lg w-75 border-0 rounded-4"
             style={{
-              background: 'rgba(255, 255, 255, 0.9)',
+              background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(225, 1, 116, 0.1)'
+              border: '1px solid rgba(225, 1, 116, 0.1)',
             }}
           >
-            <div className="card-body p-5" >
+            <div className="card-body p-5">
               {error && (
-                <motion.div 
+                <motion.div
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="alert alert-danger"
+                  className="alert alert-danger rounded-3"
+                  style={{
+                    borderColor: '#E10174',
+                  }}
                 >
                   {error}
                 </motion.div>
               )}
-              <form onSubmit={handleSubmit} >
-                <h4 className="mb-4 text-center text-dark" style={{ color: '#E10174' }}>
+              <form onSubmit={handleSubmit}>
+                <h4
+                  className="mb-4 text-center fw-bold"
+                  style={{
+                    color: '#E10174',
+                  }}
+                >
                   Login to Your Account
                 </h4>
-                <div className="mb-3">
+                <div className="mb-3 position-relative">
                   <input
                     type="email"
-                    className="form-control shadow-none"
+                    className="form-control shadow-none rounded-pill text-center"
                     id="email"
                     name="email"
                     value={credentials.email}
@@ -176,15 +182,19 @@ const Login = () => {
                     required
                     style={{
                       borderColor: '#E10174',
-                      borderRadius: '20px',
-                      padding: '12px 15px'
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
                     }}
                   />
+                  <FaEnvelope
+                    className="position-absolute start-0 top-50 translate-middle-y ms-3"
+                    size={18}
+                    color="#E10174"
+                  />
                 </div>
-                <div className="mb-1 position-relative">
+                <div className="mb-3 position-relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    className="form-control shadow-none"
+                    className="form-control shadow-none rounded-pill text-center"
                     id="password"
                     name="password"
                     value={credentials.password}
@@ -193,18 +203,20 @@ const Login = () => {
                     required
                     style={{
                       borderColor: '#E10174',
-                      borderRadius: '20px',
-                      padding: '12px 45px 12px 15px'
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
                     }}
                   />
+                  <FaLock
+                    className="position-absolute start-0 top-50 translate-middle-y ms-3"
+                    size={18}
+                    color="#E10174"
+                  />
                   <motion.span
-                    // whileHover={{ scale: 1.2 }}
-                    className="position-absolute end-0 me-3"
-                    style={{ 
-                      cursor: "pointer", 
-                      // transform: "translateY(-50%)",
+                    whileHover={{ scale: 1.2 }}
+                    className="position-absolute end-0 me-3 top-50 translate-middle-y"
+                    style={{
+                      cursor: "pointer",
                       color: '#E10174',
-                      bottom:'1rem'
                     }}
                     onClick={() => setShowPassword(!showPassword)}
                   >
@@ -215,14 +227,13 @@ const Login = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   type="submit"
-                  className="btn text-white w-100 mt-3 mb-3"
+                  className="btn text-white w-100 mt-3 rounded-pill"
                   style={{
                     backgroundColor: "#E10174",
                     borderColor: "#E10174",
-                    borderRadius: '25px',
                     padding: '12px',
                     boxShadow: '0 10px 20px rgba(225, 1, 116, 0.3)',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
                   }}
                 >
                   Login
@@ -236,4 +247,4 @@ const Login = () => {
   );
 };
 
-export { Login };
+export  {Login};

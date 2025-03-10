@@ -12,6 +12,7 @@ import { useMyContext } from "../MyContext";
 import { Form } from "react-bootstrap";
 import "./ShowTask.css"; // Custom CSS for Jira-like styling
 import { jwtDecode } from "jwt-decode";
+import CustomAlert from "../CustomAlert";
 
 function ShowTask() {
   const [tasks, setTasks] = useState([]);
@@ -21,6 +22,7 @@ function ShowTask() {
   const [filterDate, setFilterDate] = useState("");
   const [role, setRole] = useState("");
   const [userId, setUserId] = useState("");
+  const[alert,setAlert]=useState("");
 
   // Decode token and set role/userId
   useEffect(() => {
@@ -36,6 +38,7 @@ function ShowTask() {
       }
     }
   }, []);
+  const handleClose=()=>setAlert("");
 
   useEffect(() => {
     const fetchTaskData = async () => {
@@ -53,7 +56,7 @@ function ShowTask() {
         // Filter by selected employees
         else if (users && users.length > 0) {
           const userNames = users.map((user) => user.name);
-          console.log("Selected user names:", userNames);
+          // console.log("Selected user names:", userNames);
           finalTasks = data.data.filter((task) => 
             userNames.includes(task.employee_name)
           );
@@ -79,11 +82,28 @@ function ShowTask() {
     fetchTaskData();
   }, [users, filterDate, role, userId]);
 
-  const handleDelete = (taskId) => {
+  const handleDelete = async (taskId) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
-      setTasks(tasks.filter((task) => task.task_id !== taskId));
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/deletetask`, {
+          method: 'DELETE',
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: taskId }), // send taskId in the body
+        });
+   setAlert("successfully deleted..")
+        if (response.ok) {
+          setTasks(tasks.filter((task) => task.task_id !== taskId));
+        } else {
+          setAlert("Failed to delete task.");
+        }
+      } catch (error) {
+        setAlert("Error deleting task:", error);
+      }
     }
   };
+  
 
   const getPriorityBadgeColor = (priority) => {
     switch (priority.toLowerCase()) {
@@ -128,6 +148,7 @@ function ShowTask() {
 
   return (
     <div className="jira-task-container">
+      {alert && <CustomAlert message={alert} onClose={handleClose} />}
       <div className="jira-header">
         <h2 className="jira-title">
           <FaTasks className="me-2" /> Task Management
@@ -175,12 +196,12 @@ function ShowTask() {
                     </div>
                   </div>
                 </div>
-                <button
-                  className="btn"
+                {role==='Admin'&&<button
+                  className="btn button "
                   onClick={() => handleDelete(task.task_id)}
                 >
                   <FaTrashAlt /> Delete
-                </button>
+                </button>}
               </div>
             </div>
           ))}
