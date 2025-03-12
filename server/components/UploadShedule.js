@@ -21,13 +21,15 @@ const Uploadshedule = async (req, res) => {
         const sheetName = workbook.SheetNames[0]; // Assuming data is in the first sheet
         const sheet = workbook.Sheets[sheetName];
         const data = xlsx.utils.sheet_to_json(sheet);
+         console.log(data,'datatt')
 
         // Truncate the table before inserting new data
-        await db.execute(`TRUNCATE TABLE EmployeeSchedule`);
+        await db.execute(`TRUNCATE TABLE employeeschedule`);
 
         // Prepare insertion queries
         for (const row of data) {
-            const { ID, 'Employee Name': EmployeeName, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday } = row;
+            console.log(row);
+            const { ID, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday } = row;
 
             const days = [
                 { day: 'Monday', shift: Monday },
@@ -43,9 +45,9 @@ const Uploadshedule = async (req, res) => {
                 const { startTime, endTime, status } = parseShiftTimes(shift);
 
                 await db.execute(
-                    `INSERT INTO EmployeeSchedule (employee_id, employee_name, work_date, shift_start, shift_end, shift_status) 
-                     VALUES (?, ?, ?, ?, ?, ?)`,
-                    [ID, EmployeeName, day, startTime, endTime, status]
+                    `INSERT INTO employeeschedule (employee_id,  work_date, shift_start, shift_end, shift_status) 
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [ID, day, startTime, endTime, status]
                 );
             }
         }

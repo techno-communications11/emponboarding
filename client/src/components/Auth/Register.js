@@ -6,6 +6,7 @@ const Register = () => {
   const [userData, setUserData] = useState({
     email: '',
     Technoid: '',
+    username:'',
     password: '',
     confirmPassword: '',
     department: 'user',
@@ -16,7 +17,7 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [filter, setFilter] = useState({ email: '', department: '', Technoid: '' });
+  const [filter, setFilter] = useState({ email: '',username:'', department: '', Technoid: '' });
 
   useEffect(() => {
     fetchUsers();
@@ -57,7 +58,7 @@ const Register = () => {
       if (response.status === 201) {
         setSuccess('Registration successful! Please login.');
         setError('');
-        setUserData({ email: '', Technoid: '', password: '', confirmPassword: '', department: 'Admin' });
+        setUserData({ email: '',username:'', Technoid: '', password: '', confirmPassword: '', department: 'Admin' });
         fetchUsers();
       } else {
         setError(data.message || 'Registration failed');
@@ -97,9 +98,9 @@ const Register = () => {
 
   const applyFilters = (currentFilter) => {
     let filtered = [...users];
-    if (currentFilter.email) {
+    if (currentFilter.username) {
       filtered = filtered.filter((user) =>
-        user.email.toLowerCase().includes(currentFilter.email.toLowerCase())
+        user.username.toLowerCase().includes(currentFilter.username.toLowerCase())
       );
     }
     if (currentFilter.department) {
@@ -107,7 +108,7 @@ const Register = () => {
     }
     if (currentFilter.Technoid) {
       filtered = filtered.filter((user) =>
-        user.Technoid?.toLowerCase().includes(currentFilter.Technoid.toLowerCase())
+        user.technoid?.toLowerCase().includes(currentFilter.Technoid.toLowerCase())
       );
     }
     setFilteredUsers(filtered);
@@ -142,6 +143,19 @@ const Register = () => {
                     value={userData.email}
                     onChange={handleChange}
                     placeholder="Enter email"
+                    required
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label htmlFor="username" className="form-label lite-label">username</label>
+                  <input
+                    type="username"
+                    className="form-control lite-input"
+                    id="username"
+                    name="username"
+                    value={userData.username}
+                    onChange={handleChange}
+                    placeholder="Enter username"
                     required
                   />
                 </div>
@@ -222,15 +236,15 @@ const Register = () => {
       <section>
         <div className="card lite-card">
           <div className="card-body">
-            <h2 className="card-title lite-title">Manage Users</h2>
+            <h2 className="card-title lite-title">Manage Employees</h2>
             <div className="row g-3 mb-4">
               <div className="col-md-4">
                 <input
                   type="text"
                   className="form-control lite-input"
-                  placeholder="Filter by Email"
-                  name="email"
-                  value={filter.email}
+                  placeholder="Filter by Username"
+                  name="username"
+                  value={filter.username}
                   onChange={handleFilterChange}
                 />
               </div>
@@ -268,10 +282,11 @@ const Register = () => {
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
                       <p className="mb-1"><strong>Email:</strong> {user.email}</p>
+                      <p className="mb-1"><strong>Username:</strong> {user.username}</p>
                       <p className="mb-1"><strong>role:</strong> {user.department}</p>
                       <p className="mb-1"><strong>Technoid:</strong> {user.technoid || 'N/A'}</p>
                       <p className="mb-1"><strong>Salary:</strong> {user.salary || 'N/A'}</p>
-                      <p className="mb-1"><strong>Position:</strong> {user.position_id || 'N/A'}</p>
+                      <p className="mb-1"><strong>Position:</strong> {user.position || 'N/A'}</p>
                     </div>
                     <button
                       className="btn lite-btn-edit"

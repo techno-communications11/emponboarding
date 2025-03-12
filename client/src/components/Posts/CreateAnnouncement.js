@@ -4,34 +4,18 @@ import { IoMdAdd } from "react-icons/io";
 import AnnouncementForm from "./AnnouncementForm.js";
 // import UserSideNav from "../Task/UserSideNav.js";
 import Announcements from "./Announcements";
-import "../Task/Assigntask.js"; // Custom CSS for Jira-like styling
 
 function CreateAnnouncement() {
   const [clicked, setClicked] = useState(false);
 
-  const handleClick = () => {
-    setClicked(true);
-  };
-
   return (
     <Container fluid className="jira-container">
       <Row>
-        {/* Sidebar */}
-        <Col md={3} className="jira-sidebar">
-          Last Announcement Acknowledgements
-        </Col>
-
-        {/* Main Content */}
-        <Col md={5} className="jira-main">
-          {clicked ? (
-            <AnnouncementForm setClicked={setClicked} />
-          ) : (
-            <Row className="justify-content-center mb-3">
-              <Col xs={12} md={10} lg={12}>
-                <div
-                  className="jira-assign-card"
-                  onClick={handleClick}
-                >
+            <Col xs={12} md={4} lg={4}>
+              {clicked ? (
+                <AnnouncementForm setClicked={setClicked} />
+              ) : (
+                <div className="jira-assign-card" onClick={() => setClicked(true)}>
                   <div className="d-flex align-items-center justify-content-center w-100">
                     <div className="jira-icon-circle me-3">
                       <IoMdAdd className="jira-icon" />
@@ -39,13 +23,18 @@ function CreateAnnouncement() {
                     <span className="jira-assign-text">Create Announcement</span>
                   </div>
                 </div>
-              </Col>
-            </Row>
-          )}
-          <Row>
-            <Announcements className="jira-show-task" />
+              )}
+        </Col>
+        <Col>
+        <Row>
+            <Col xs={12} md={8} lg={8}>
+              <Announcements  />
+            </Col>
           </Row>
         </Col>
+       
+
+      
       </Row>
     </Container>
   );

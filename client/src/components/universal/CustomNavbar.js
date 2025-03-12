@@ -50,7 +50,7 @@ const CustomNavbar = () => {
           }
           className="d-flex align-items-center"
         >
-          <img src="logo.webp" height={40} alt="Logo" className="jira-logo" />
+          <img src="logo.webp" height={30} alt="Logo" className="jira-logo" />
           <span className="jira-brand ms-2">Techno Communications LLC</span>
         </Navbar.Brand>
 

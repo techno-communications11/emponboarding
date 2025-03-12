@@ -32,7 +32,7 @@ import getweekshedule from "../components/getweeklyshedule.js";
 import assignTask from '../components/TaskCreation.js';
 import getTaskData from '../components/getTaskdata.js';
 import deleteTask from '../components/deleteTask.js';
-import { createannouncement, getAnnouncement } from "../components/Announcements/announcementController.js";
+import { createannouncement, getAnnouncement ,comment,likeAnnouncement,dislikeAnnouncement} from "../components/Announcements/announcementController.js";
 
 
 
@@ -51,6 +51,10 @@ router.post('/createtask',assignTask)
 router.delete('/deletetask',deleteTask)
 router.post("/createannouncement", upload.single("image"), createannouncement);
 router.get("/getannouncement", getAnnouncement);
+router.post("/addcomment", comment);
+router.post("/dislikeannouncement", dislikeAnnouncement);
+router.post("/likeannouncement", likeAnnouncement);
+// router.get("/announcements/details", announcedata);
 // Update Contract
 router.put("/updatecontract/:id", updateContract);
 router.get('/getusers',getUsers);

@@ -1,6 +1,6 @@
 import db from "../dbConnection/db.js";
 
-const getTaskData = async (req, res) => {
+const   getTaskData = async (req, res) => {
   try {
     // Query to fetch task data with employee names
     const query = `
@@ -11,23 +11,21 @@ const getTaskData = async (req, res) => {
     c.priority, 
     c.due_date, 
     c.created_at,
-    sh.employee_name
+    u.username
 FROM 
     TaskAssignments t 
 LEFT JOIN 
     taskcreationtable c 
-ON 
-    t.task_id = c.id
+    ON t.task_id = c.id
 LEFT JOIN 
     users u 
-ON 
-    t.user_id = u.id
+    ON t.user_id = u.id
 LEFT JOIN 
-    (SELECT DISTINCT employee_id, employee_name FROM employeeschedule) sh 
-ON 
-    u.technoid = sh.employee_id
+    (SELECT employee_id FROM employeeschedule GROUP BY employee_id) sh 
+    ON u.technoid = sh.employee_id
 ORDER BY 
     c.created_at DESC;
+
     `;
 
     // Execute the query

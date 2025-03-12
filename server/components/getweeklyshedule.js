@@ -8,29 +8,40 @@ const getweekshedule = async (req, res) => {
             return res.status(400).json({ message: "Invalid or missing user ID" });
         }
 
-        // Query to get technoid and department from users table
-        const getTechnoIdQuery = "SELECT technoid, department FROM users WHERE id = ?";
-        const [resultId] = await db.execute(getTechnoIdQuery, [userid]);
+        // Query to get technoid, username, and department from users table
+        const getUserQuery = "SELECT technoid, username, department FROM users WHERE id = ?";
+        const [userResult] = await db.execute(getUserQuery, [userid]);
 
-        if (resultId.length === 0) {
+        if (userResult.length === 0) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const { technoid, department } = resultId[0];
+        const { technoid, department } = userResult[0];
 
-        let scheduleResult;
+        let scheduleQuery;
+        let queryParams = [];
 
-        // If department is "Admin", fetch all data
         if (department === "Admin") {
-            const getAllScheduleQuery = "SELECT * FROM employeeschedule ";
-            [scheduleResult] = await db.execute(getAllScheduleQuery);
+            // Fetch all employee schedules with user details for Admin
+            scheduleQuery = `
+                SELECT es.*, u.username, u.department 
+                FROM employeeschedule es 
+                JOIN users u ON es.employee_id = u.technoid
+            `;
         } else {
-            // Fetch data for the specific user
-            const getWeeklyScheduleQuery = "SELECT * FROM employeeschedule WHERE employee_id = ?";
-            [scheduleResult] = await db.execute(getWeeklyScheduleQuery, [technoid]);
+            // Fetch only the specific user's schedule
+            scheduleQuery = `
+                SELECT es.*, u.username, u.department 
+                FROM employeeschedule es 
+                JOIN users u ON es.employee_id = u.technoid
+                WHERE es.employee_id = ?
+            `;
+            queryParams = [technoid];
         }
 
-        console.log(scheduleResult);
+        const [scheduleResult] = await db.execute(scheduleQuery, queryParams);
+
+        console.log(scheduleResult, 'results');
         return res.status(200).json(scheduleResult);
     } catch (error) {
         console.error("Error fetching weekly schedule:", error);

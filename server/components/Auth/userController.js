@@ -1,10 +1,11 @@
 import db from "../../dbConnection/db.js";
 // Register a new user
 const Register = async (req, res) => {
-  const { email, Technoid, password, role } = req.body;
+  const { email, username,Technoid, password, department } = req.body;
+   console.log(req.body,'register')
 
   // Validate input
-  if (!email || !password || !role) {
+  if (!email || !password || !department) {
     return res.status(400).json({ message: 'Email, password, and role are required' });
   }
 
@@ -18,8 +19,8 @@ const Register = async (req, res) => {
 
     // Insert the new user into the database
     const [result] = await db.execute(
-        'INSERT INTO users (email, Technoid, password, role) VALUES (?, ?, ?, ?)',
-        [email, Technoid, password, role]
+        'INSERT INTO users (email, username,Technoid, password, department) VALUES (?, ?, ?, ?,?)',
+        [email, username,Technoid, password, department]
       );
 
     res.status(201).json({ message: 'User registered successfully', userId: result.insertId });
@@ -53,7 +54,7 @@ const updateUser = async (req, res) => {
 
   try {
     // Update the user in the database
-    await db.execute('UPDATE users SET salary = ?, position_id = ? WHERE id = ?', [
+    await db.execute('UPDATE users SET salary = ?, position = ? WHERE id = ?', [
         salary,
         position_id,
         userId,

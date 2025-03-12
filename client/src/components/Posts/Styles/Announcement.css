@@ -27,9 +27,14 @@
 .insta-profile-pic {
   width: 40px;
   height: 40px;
-  background: #ddd;
+  background: #86b6be;
   border-radius: 50%;
   margin-right: 10px;
+  text-align: center;
+  font-weight: 800;
+  position:relative;
+  margin-top:'3rem';
+  
 }
 
 .insta-username {

@@ -58,7 +58,7 @@ function ShowTask() {
           const userNames = users.map((user) => user.name);
           // console.log("Selected user names:", userNames);
           finalTasks = data.data.filter((task) => 
-            userNames.includes(task.employee_name)
+            userNames.includes(task.username)
           );
         }
 
@@ -171,7 +171,7 @@ function ShowTask() {
               <div className="jira-task-header">
                 <div className="jira-employee">
                   <FaUserTie className="me-2" />
-                  <span>{task.employee_name}</span>
+                  <span>{task.username}</span>
                 </div>
                 <span
                   className="jira-priority-badge"

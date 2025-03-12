@@ -50,7 +50,7 @@ const WeeklySchedule = () => {
         if (response.ok) {
           const data = await response.json();
           if (data.length > 0) {
-            if (!isAdmin) setName(data[0].employee_name);
+            if (!isAdmin) setName(data[0].username);
             setDays(data);
           }
         }
@@ -67,7 +67,7 @@ const WeeklySchedule = () => {
         const empId = day.employee_id;
         if (!acc[empId]) {
           acc[empId] = {
-            name: day.employee_name,
+            name: day.username,
             schedule: [],
           };
         }

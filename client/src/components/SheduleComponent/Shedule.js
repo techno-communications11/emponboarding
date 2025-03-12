@@ -5,7 +5,6 @@ import {
   Spinner,
   Card,
   Modal,
-  Form,
 } from "react-bootstrap";
 import { FaCloudUploadAlt, FaFileUpload } from "react-icons/fa";
 import { motion } from "framer-motion"; // Import motion from framer-motion

@@ -4,7 +4,7 @@ const getUsers = async (req, res) => {
   try {
     const query = `
    SELECT DISTINCT 
-    sh.employee_name AS name,
+    u.username AS name,
     sh.employee_id AS id
 FROM 
     users u
