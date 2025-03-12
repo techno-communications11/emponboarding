@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Row, Col } from 'react-bootstrap';
-import './admin.css'
+import './Styles/admin.css'
 
 const AdminDashboard = () => {
   const [data, setData] = useState([]);

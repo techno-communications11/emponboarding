@@ -8,11 +8,11 @@ import {
   FaTrashAlt,
   FaSpinner,
 } from "react-icons/fa";
-import { useMyContext } from "../MyContext";
+import { useMyContext } from "../universal/MyContext";
 import { Form } from "react-bootstrap";
-import "./ShowTask.css"; // Custom CSS for Jira-like styling
+import "./Styles/ShowTask.css"; // Custom CSS for Jira-like styling
 import { jwtDecode } from "jwt-decode";
-import CustomAlert from "../CustomAlert";
+import CustomAlert from "../universal/CustomAlert";
 
 function ShowTask() {
   const [tasks, setTasks] = useState([]);

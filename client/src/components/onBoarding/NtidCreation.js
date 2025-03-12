@@ -3,7 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 import { 
   User, Mail, Phone, MapPin, Store, Calendar, Grid, FileText, Key, Clock, Send, Lock, Loader, CheckCircle 
 } from 'lucide-react';
-import CustomAlert from "./CustomAlert";
+import CustomAlert from "../universal/CustomAlert";
 
 const NtidCreation = () => {
   const [mergedRows, setMergedRows] = useState([]);

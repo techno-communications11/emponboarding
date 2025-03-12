@@ -10,8 +10,8 @@ import {
   FaCheck
 } from 'react-icons/fa';
 import GetUsers from './GetUsers';
-import CustomAlert from '../CustomAlert';
-import './TaskForm.css'; // Custom CSS for Jira-like styling
+import CustomAlert from '../universal/CustomAlert';
+import './Styles/TaskForm.css'; // Custom CSS for Jira-like styling
 
 export default function TaskForm({ setClicked }) {
   const [taskDescription, setTaskDescription] = useState("");

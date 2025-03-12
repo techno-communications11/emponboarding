@@ -1,8 +1,8 @@
 import express from 'express';
- import register from '../components/register.js'
  import login from '../components/login.js';
 //  import Contract from '../components/contract.js';
  import getContract from '../components/getContract.js';
+ import { Register, userdata, updateUser } from '../components/Auth/userController.js';
  
  import { ntidcreation, assignNtid } from '../components/ntidCreation.js';
  import getntidsetup from '../components/getntidSetup.js'
@@ -31,9 +31,16 @@ import getUsers from '../components/getusers.js';
 import getweekshedule from "../components/getweeklyshedule.js";
 import assignTask from '../components/TaskCreation.js';
 import getTaskData from '../components/getTaskdata.js';
+import deleteTask from '../components/deleteTask.js';
+import { createannouncement, getAnnouncement } from "../components/Announcements/announcementController.js";
+
 
 
 const router = express.Router();
+
+router.post('/register', Register);
+router.get('/users', userdata);
+router.put('/users/:id', updateUser);
 
 router.post("/savecontract", saveContract);
 router.get("/getntidcontract", getNtidContract);
@@ -41,7 +48,9 @@ router.post('/upload-schedule', upload.single('file'), Uploadshedule);
 router.get("/getweekshedule/:userid", getweekshedule);
 router.put("/updatestatus/:id",updatestatus)
 router.post('/createtask',assignTask)
-
+router.delete('/deletetask',deleteTask)
+router.post("/createannouncement", upload.single("image"), createannouncement);
+router.get("/getannouncement", getAnnouncement);
 // Update Contract
 router.put("/updatecontract/:id", updateContract);
 router.get('/getusers',getUsers);
@@ -52,7 +61,6 @@ router.put("/assigncontract/:id", assignContract);
 router.post("/uploadfiles", upload.single('file'), Uploadfiles);
 router.post("/createticket", createTicket);
 
-router.post('/register', register);
 router.post('/addtask', TaskDataUpload);
 // router.post('/contract', Contract);
 router.get('/getcontract',getContract);

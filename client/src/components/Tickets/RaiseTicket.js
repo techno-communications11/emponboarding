@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Container, Form, Button } from "react-bootstrap";
 import { FaTicketAlt, FaUser, FaAlignLeft, FaExclamationCircle } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
-import CustomAlert from "./CustomAlert";
-import "./RaiseTicket.css"; // Custom CSS for Jira-like styling
+import CustomAlert from "../universal/CustomAlert";
+import "./Styles/RaiseTicket.css"; // Custom CSS for Jira-like styling
 
 function RaiseTicket({ onTicketSubmit }) {
   const [formData, setFormData] = useState({

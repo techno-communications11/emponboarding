@@ -1,0 +1,199 @@
+/* General Container */
+.lite-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: transparent;
+  min-height: 100vh;
+}
+
+/* Card Styling */
+.lite-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff;
+  padding: 25px;
+}
+
+/* Titles */
+.lite-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #34495e; /* Soft dark gray */
+  margin-bottom: 20px;
+
+  text-align: center;
+}
+
+/* Labels */
+.lite-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4f6c8a;
+}
+
+/* Inputs */
+.lite-input {
+  border-radius: 8px;
+  border: 1px solid #e6e9ef; /* Light gray border */
+  padding: 12px;
+  font-size: 14px;
+  background-color: #f9fafb;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.lite-input:focus {
+  border-color: #a3bffa; /* Light blue */
+  box-shadow: 0 0 0 2px rgba(163, 191, 250, 0.3);
+  outline: none;
+}
+
+/* Password Toggle Button */
+.lite-toggle-password {
+  position: absolute;
+  top: 65%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #a3bffa;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* Buttons */
+.lite-btn-primary {
+  background: linear-gradient(135deg, #a3bffa, #7f9cf5); /* Light blue gradient */
+  border: none;
+  border-radius: 20px; /* Rounded ends */
+  padding: 10px 24px;
+  font-weight: 600;
+  color: #ffffff;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.lite-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(163, 191, 250, 0.4);
+  color: #ffffff;
+}
+
+.lite-btn-edit {
+  background: linear-gradient(135deg, #ffe8cc, #ffd8a8); /* Light orange gradient */
+  border: none;
+  border-radius: 20px; /* Rounded ends */
+  color: #e67e22; /* Soft orange text */
+  font-weight: 600;
+  padding: 8px 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.lite-btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 232, 204, 0.4);
+  color: #d35400;
+}
+
+.lite-btn-success {
+  background: linear-gradient(135deg, #b8e994, #9ccc65); /* Pastel green gradient */
+  border: none;
+  border-radius: 20px; /* Rounded ends */
+  padding: 8px 20px;
+  color: #ffffff;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.lite-btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(184, 233, 148, 0.4);
+  color: #ffffff;
+}
+
+.lite-btn-secondary {
+  background: linear-gradient(135deg, #e6e9ef, #d1d8e0); /* Light gray gradient */
+  border: none;
+  border-radius: 20px; /* Rounded ends */
+  padding: 8px 20px;
+  color: #34495e;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.lite-btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(209, 216, 224, 0.4);
+  color: #2c3e50;
+}
+
+/* Alerts */
+.lite-alert {
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  background-color: #e6f7e6; /* Light green for success */
+  border: none;
+}
+
+.lite-alert.alert-danger {
+  background-color: #fceaea; /* Light red for error */
+}
+
+/* Users List */
+.lite-users-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.lite-user-item {
+  background-color: #f9fafb;
+  border: 1px solid #e6e9ef;
+  border-radius: 8px;
+  padding: 15px;
+  font-size: 14px;
+  color: #34495e;
+}
+
+.lite-user-item p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Scrollbar Styling */
+.lite-users-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.lite-users-list::-webkit-scrollbar-thumb {
+  background-color: #d1d8e0;
+  border-radius: 4px;
+}
+
+.lite-users-list::-webkit-scrollbar-track {
+  background-color: #f9fafb;
+}
+
+/* Modal Styling */
+.lite-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.lite-modal-content {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 25px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}

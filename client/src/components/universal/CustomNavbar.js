@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { jwtDecode } from "jwt-decode";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
-import "./CustomNavbar.css"; // Custom CSS for Jira-like styling
+import "./Styles/CustomNavbar.css"; // Custom CSS for Jira-like styling
 
 const CustomNavbar = () => {
   const [role, setRole] = useState("");
@@ -45,7 +45,7 @@ const CustomNavbar = () => {
             role === "Admin"
               ? "/adminDashboard"
               : role === "Employee"
-              ? "/employeehome"
+              ? "/announcements"
               : "/userDashboard"
           }
           className="d-flex align-items-center"
@@ -60,6 +60,16 @@ const CustomNavbar = () => {
         {/* Collapsible menu */}
         <Navbar.Collapse id="navbarNav">
           <Nav className="ms-auto d-flex align-items-center">
+            {role==="Employee"&&(
+            <Nav.Link
+            as={Link}
+            to="/employeehome"
+            className="fw-bolder jira-nav-link fw-bolder "
+            onClick={handleNavLinkClick}
+          >
+            Update Task
+          </Nav.Link>
+            )}
             {/* Shared Links */}
             {role === "Contract" && (
               <Nav.Link

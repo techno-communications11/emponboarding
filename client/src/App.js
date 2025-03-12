@@ -1,24 +1,26 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Login } from "./components/Login";
-import { Register } from "./components/Register";
-import Navbar from "./components/CustomNavbar.js";
-import Updatepassword from "./components/Updatepassword";
-import PrivateRoute from "./components/PrivateRoute.js";
+import { Login } from "./components/Auth/Login.js";
+import { Register } from "./components/Auth/Register";
+import Navbar from "./components/universal/CustomNavbar.js";
+import Updatepassword from "./components/Auth/Updatepassword.js";
+import PrivateRoute from "./components/universal/PrivateRoute.js";
 import { useLocation } from "react-router-dom";
-import Contract from "./components/Contract.js";
-import NtidCreation from "./components/NtidCreation.js";
-import NtidSetup from "./components/NtidSetup.js";
+import Contract from "./components/onBoarding/Contract.js";
+import NtidCreation from "./components/onBoarding/NtidCreation.js";
+import NtidSetup from "./components/onBoarding/NtidSetup.js";
 import { jwtDecode } from "jwt-decode";
-import TrainingData from "./components/TrainingData.js";
-import AdminDashboard from "./components/AdminDashboard.js";
+import TrainingData from "./components/onBoarding/TrainingData.js";
+import AdminDashboard from "./components/onBoarding/AdminDashboard.js";
 import UserDashboard from "./components/UserDashboard.js";
-import Shedule from "./components/Shedule.js";
+import Shedule from "./components/SheduleComponent/Shedule.js";
 import EmployeeHome from "./components/EmployeeHome.js";
-import DailyUpdates from "./components/DailyUpdates.js";
-import ViewTicket from "./components/ViewTicket.js";
+import DailyUpdates from "./components/DailyUpdates/DailyUpdates.js";
+import ViewTicket from "./components/Tickets/ViewTicket.js";
 import Assigntask from "./components/Task/Assigntask.js";
 import ShowTask from "./components/Task/ShowTask.js";
+import CreateAnnouncement from "./components/Posts/CreateAnnouncement.js";
+import Announcements from "./components/Posts/Announcements.js";
 
 // Function to get role from token
 const getRoleFromToken = () => {
@@ -57,12 +59,20 @@ const AppContent = () => {
               path="/viewTicket"
               element={<PrivateRoute element={<ViewTicket />} />}
             />
+            <Route
+              path="/announcements"
+              element={<PrivateRoute element={<Announcements />} />}
+            />
           </>
         )}
 
         {/* Role-based private routes */}
         {role === "Admin" && (
           <>
+           <Route
+              path="/announcements"
+              element={<PrivateRoute element={<CreateAnnouncement />} />}
+            />
            <Route
               path="/assigntask"
               element={<PrivateRoute element={<Assigntask />} />}

@@ -5,7 +5,7 @@ import {
   FaCheckCircle, FaFingerprint, FaUserShield, FaCalendarCheck, FaIdCard, FaFileAlt, 
   FaKeyboard, FaClipboardList, FaComments, FaPaperPlane, FaSpinner 
 } from 'react-icons/fa';
-import CustomAlert from "./CustomAlert";
+import CustomAlert from '../universal/CustomAlert';
 
 function NtidSetup() {
   const [data, setData] = useState([]);

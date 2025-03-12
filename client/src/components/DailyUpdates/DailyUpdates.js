@@ -1,13 +1,15 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import { Container, Form, Button, Card, Row, Col, Badge } from "react-bootstrap";
-import { FaCalendarAlt, FaSearch, FaTasks, FaShareAlt, FaCog } from "react-icons/fa";
+import { Form, Button, Card, Row, Col, Badge } from "react-bootstrap";
+import { FaCalendarAlt, FaTasks, FaShareAlt, FaCog } from "react-icons/fa";
 import { CiMail } from "react-icons/ci";
 import { MdAddTask } from "react-icons/md";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import CustomAlert from "./CustomAlert";
-import "./DailyUpdates.css"; // Custom CSS for Jira-like styling
+import CustomAlert from "../universal/CustomAlert";
+import "./Styles/DailyUpdates.css"; // Custom CSS for Jira-like styling
+import { TfiAnnouncement } from "react-icons/tfi";
+
 
 const DailyUpdates = () => {
   const [submittedData, setSubmittedData] = useState([]);
@@ -98,6 +100,7 @@ const DailyUpdates = () => {
               />
             </Form.Group>
             {role !== "Employee" && role && (
+              <>
               <Button
                 variant="outline-primary"
                 className="w-100 mt-3 jira-button"
@@ -105,6 +108,14 @@ const DailyUpdates = () => {
               >
                 <MdAddTask className="me-2" /> Assign Task
               </Button>
+              <Button
+              variant="outline-primary"
+              className="w-100 mt-3 jira-button"
+              onClick={() => navigate("/announcements")}
+            >
+              <TfiAnnouncement className="me-2" /> Announcement
+            </Button></>
+              
             )}
           </div>
         </Col>

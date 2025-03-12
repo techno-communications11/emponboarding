@@ -20,9 +20,9 @@ import {
 } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import CustomAlert from "./CustomAlert";
-import RaiseTicket from "./RaiseTicket";
-import WeeklySchedule from "./WeeklySchedule";
+import CustomAlert from "./universal/CustomAlert";
+import RaiseTicket from "./Tickets/RaiseTicket";
+import WeeklySchedule from '../components/SheduleComponent/WeeklySchedule'
 import "./EmployeeHome.css"; // Custom CSS for Jira-like styling
 
 const EmployeeHome = () => {

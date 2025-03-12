@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Button, Spinner, Alert, Badge, Dropdown } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
-import CustomAlert from "./CustomAlert";
+import CustomAlert from "../universal/CustomAlert";
 import { FaFilter, FaListUl, FaCog } from 'react-icons/fa';
 import { FcApproval } from "react-icons/fc";
-import './ViewTicket.css'; // Assuming you'll add custom CSS
+import './Styles/ViewTicket.css'; // Assuming you'll add custom CSS
 
 function ViewTicket() {
   const [tickets, setTickets] = useState([]);

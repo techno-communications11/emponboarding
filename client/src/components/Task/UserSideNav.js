@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FaSearch, FaUser, FaUserCheck, FaUserSlash, FaSpinner } from 'react-icons/fa';
 import GetUsers from './GetUsers';
 import { Row, Col } from 'react-bootstrap';
-import { useMyContext } from '../MyContext';
-import './UserSideNav.css'; // Custom CSS for Jira-like styling
+import { useMyContext } from '../universal/MyContext';
+import './Styles/UserSideNav.css'; // Custom CSS for Jira-like styling
 
 function UserSideNav() {
   const [availableUsers, setAvailableUsers] = useState([]);

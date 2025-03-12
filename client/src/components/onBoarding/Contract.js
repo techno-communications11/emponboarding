@@ -3,7 +3,7 @@ import { Container, Table, Button, Badge } from "react-bootstrap";
 import { LiaFileContractSolid } from "react-icons/lia";
 import UploadDocument from "./UploadDocument";
 import Modal from "react-bootstrap/Modal";
-import CustomAlert from "./CustomAlert";
+import CustomAlert from "../universal/CustomAlert";
 
 function Contract() {
   const [rows, setRows] = useState([]); // Assigned contracts

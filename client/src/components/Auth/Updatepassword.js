@@ -7,7 +7,7 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
 } from 'react-icons/fa';
-import './resetpassword.css';
+import './Styles/resetpassword.css';
 
 const UpdatePassword = () => {
   const [userData, setUserData] = useState({ email: '', password: '' });

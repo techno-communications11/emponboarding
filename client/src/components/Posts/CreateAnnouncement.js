@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Row, Col, Container } from "react-bootstrap";
 import { IoMdAdd } from "react-icons/io";
-import TaskForm from "./TaskForm";
-import UserSideNav from "./UserSideNav";
-import ShowTask from "./ShowTask";
-import "./Styles/Assigntask.css"; // Custom CSS for Jira-like styling
+import AnnouncementForm from "./AnnouncementForm.js";
+// import UserSideNav from "../Task/UserSideNav.js";
+import Announcements from "./Announcements";
+import "../Task/Assigntask.js"; // Custom CSS for Jira-like styling
 
-function Assigntask() {
+function CreateAnnouncement() {
   const [clicked, setClicked] = useState(false);
 
   const handleClick = () => {
@@ -18,13 +18,13 @@ function Assigntask() {
       <Row>
         {/* Sidebar */}
         <Col md={3} className="jira-sidebar">
-          <UserSideNav />
+          Last Announcement Acknowledgements
         </Col>
 
         {/* Main Content */}
-        <Col md={9} className="jira-main">
+        <Col md={5} className="jira-main">
           {clicked ? (
-            <TaskForm setClicked={setClicked} />
+            <AnnouncementForm setClicked={setClicked} />
           ) : (
             <Row className="justify-content-center mb-3">
               <Col xs={12} md={10} lg={12}>
@@ -36,14 +36,14 @@ function Assigntask() {
                     <div className="jira-icon-circle me-3">
                       <IoMdAdd className="jira-icon" />
                     </div>
-                    <span className="jira-assign-text">Assign Task</span>
+                    <span className="jira-assign-text">Create Announcement</span>
                   </div>
                 </div>
               </Col>
             </Row>
           )}
           <Row>
-            <ShowTask className="jira-show-task" />
+            <Announcements className="jira-show-task" />
           </Row>
         </Col>
       </Row>
@@ -51,4 +51,4 @@ function Assigntask() {
   );
 }
 
-export default Assigntask;
+export default CreateAnnouncement;
