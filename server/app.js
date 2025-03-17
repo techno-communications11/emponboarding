@@ -13,7 +13,7 @@ app.use(express.json());
 
 // CORS Configuration
 const corsOptions = {
-  origin: 'http://localhost:3001', // Allow only requests from this domain
+  origin: process.env.CLIENT_URL, // Allow only requests from this domain
   methods: ['GET', 'POST','PUT','DELETE'], // Allow specific HTTP methods
   allowedHeaders: ['Content-Type'], // Allow specific headers
 };
