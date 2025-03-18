@@ -106,7 +106,7 @@ const WeeklySchedule = () => {
         {`
           .sidebar {
             border-right: 1px solid #e2e8f0;
-            height: calc(100vh - 32px);
+            height: auto;
             position: sticky;
             top: 16px;
           }
@@ -167,12 +167,27 @@ const WeeklySchedule = () => {
           .add-button:hover {
             transform: rotate(-5deg) scale(1.05);
           }
+          @media (max-width: 768px) {
+            .sidebar {
+              border-right: none;
+              border-bottom: 1px solid #e2e8f0;
+              height: auto;
+              position: static;
+              margin-bottom: 16px;
+            }
+            .employee-list-item {
+              padding: 8px 12px;
+            }
+            .day-card {
+              padding: 12px;
+            }
+          }
         `}
       </style>
 
       <Row className="g-4">
         {isAdmin && (
-          <Col md={3} lg={2} className="sidebar">
+          <Col xs={12} md={3} lg={2} className="sidebar">
             <InputGroup className="mb-4">
               <InputGroup.Text>
                 <FaFilter />
@@ -206,7 +221,7 @@ const WeeklySchedule = () => {
           </Col>
         )}
 
-        <Col md={isAdmin ? 9 : 12} lg={isAdmin ? 10 : 12}>
+        <Col xs={12} md={isAdmin ? 9 : 12} lg={isAdmin ? 10 : 12}>
           <div className="d-flex justify-content-between align-items-center mb-4">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -234,7 +249,7 @@ const WeeklySchedule = () => {
             </motion.button>
           )}
 
-          <Row xs={1} md={2} lg={3} className="g-2">
+          <Row xs={1} sm={2} md={2} lg={3} className="g-2">
             {(isAdmin
               ? selectedEmployee
                 ? groupedByEmployee?.[selectedEmployee]?.schedule || []

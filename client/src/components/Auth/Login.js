@@ -152,17 +152,17 @@ const Login = () => {
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="col-md-6 d-flex justify-content-center align-items-center p-5"
+          className="col-md-6 d-flex justify-content-center align-items-center p-2 p-lg-5"
         >
           <div
-            className="card shadow-lg w-75 border-0 rounded-4"
+            className="card shadow-lg col-12 col-md-8 col-lg-10 border-0 rounded-4"
             style={{
               background: "rgba(255, 255, 255, 0.95)",
               backdropFilter: "blur(10px)",
               border: "1px solid rgba(225, 1, 116, 0.1)",
             }}
           >
-            <div className="card-body p-5">
+            <div className="card-body  p-5">
               {error && (
                 <motion.div
                   initial={{ y: -20, opacity: 0 }}
