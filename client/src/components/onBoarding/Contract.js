@@ -12,6 +12,7 @@ function Contract() {
   const [show, setShow] = useState(false);
   const [editingField, setEditingField] = useState(null); // Track which field is being edited
    const [email, setEmail] = useState("");
+   const [loading, setLoading] = useState(true);
   const [newRow, setNewRow] = useState({
     first_name: "",
     last_name: "",
@@ -43,14 +44,25 @@ function Contract() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getcontract`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      setLoading(true);
+      setAlertMessage(""); // Clear previous alerts
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getcontract`, {
+        method: "GET",
+        credentials: "include", // Send HTTP-only cookie for authentication
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
       const data = await response.json();
-      setRows(data.filter((row) => row.assigned));
-      setSavedRows(data.filter((row) => !row.assigned));
+      // Ensure data is an array before filtering
+      const validData = Array.isArray(data) ? data : [];
+      setRows(validData.filter((row) => row.assigned));
+      setSavedRows(validData.filter((row) => !row.assigned));
     } catch (error) {
       console.error("Error fetching data:", error);
-      setAlertMessage("Failed to load data. Please try again.");
+      setAlertMessage(`Failed to load contract data: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -133,6 +145,7 @@ function Contract() {
 
       const response = await fetch(url, {
         method: action === "save" ? "POST" : "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

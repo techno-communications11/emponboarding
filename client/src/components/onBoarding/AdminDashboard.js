@@ -13,6 +13,7 @@ const AdminDashboard = () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getadmindata`, {
           method: 'GET',
+          credentials: "include",
           headers: {
             'Content-Type': 'application/json',
           },

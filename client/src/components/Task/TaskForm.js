@@ -74,6 +74,7 @@ export default function TaskForm({ setClicked }) {
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/createtask`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(task),
       });

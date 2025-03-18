@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Form, Button } from "react-bootstrap";
 import { FaTicketAlt, FaUser, FaAlignLeft, FaExclamationCircle } from "react-icons/fa";
-import { jwtDecode } from "jwt-decode";
 import CustomAlert from "../universal/CustomAlert";
 import "./Styles/RaiseTicket.css"; // Custom CSS for Jira-like styling
 
@@ -13,17 +12,32 @@ function RaiseTicket({ onTicketSubmit }) {
     priority: "Medium",
   });
   const [alertMessage, setAlertMessage] = useState("");
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem("token");
-  let id;
-  if (token) {
-    try {
-      const decodedToken = jwtDecode(token);
-      id = decodedToken.id;
-    } catch (error) {
-      console.error("Invalid token:", error);
-    }
-  }
+  // Fetch user ID from /users/me on mount
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+          method: "GET",
+          credentials: "include", // Send HTTP-only cookie
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserId(data.id); // Assuming /users/me returns { id, email, role }
+        } else {
+          setAlertMessage("User not authenticated. Please log in.");
+        }
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+        setAlertMessage("Failed to load user data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserId();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,14 +49,14 @@ function RaiseTicket({ onTicketSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!id) {
+    if (!userId) {
       setAlertMessage("User not authenticated. Please log in.");
       return;
     }
 
     try {
       const ticketData = {
-        employee_id: id,
+        employee_id: userId,
         name: formData.name,
         title: formData.title,
         description: formData.description,
@@ -52,10 +66,14 @@ function RaiseTicket({ onTicketSubmit }) {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/createticket`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Send HTTP-only cookie for authentication
         body: JSON.stringify(ticketData),
       });
 
-      if (!response.ok) throw new Error("Failed to create ticket");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create ticket");
+      }
 
       setAlertMessage("Ticket raised successfully!");
       setFormData({
@@ -67,9 +85,13 @@ function RaiseTicket({ onTicketSubmit }) {
       if (onTicketSubmit) setTimeout(onTicketSubmit, 2000); // Delay to show alert
     } catch (error) {
       console.error("Error submitting ticket:", error);
-      setAlertMessage("Failed to raise ticket. Please try again.");
+      setAlertMessage(error.message || "Failed to raise ticket. Please try again.");
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Show loading state while fetching user ID
+  }
 
   return (
     <Container className="jira-ticket-container">

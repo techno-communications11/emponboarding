@@ -5,10 +5,8 @@ import {
   ListGroup,
   InputGroup,
   FormControl,
-
 } from "react-bootstrap";
-import { jwtDecode } from "jwt-decode";
-import { FaCalendarAlt, FaClock, FaUser, FaFilter, FaPlus } from "react-icons/fa";
+import { FaCalendarAlt, FaClock, FaUser, FaFilter } from "react-icons/fa";
 import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -19,23 +17,37 @@ const WeeklySchedule = () => {
   const [userid, setUserid] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
- 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Fetch user data from /users/me
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    const fetchUserData = async () => {
       try {
-        const decoded = jwtDecode(token);
-        setUserid(decoded.id);
-        setIsAdmin(decoded.role === "Admin");
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+          method: "GET",
+          credentials: "include", // Send HTTP-only cookie
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserid(data.id);
+          setIsAdmin(data.role === "Admin");
+        } else {
+          setError("Failed to authenticate. Please log in.");
+        }
       } catch (error) {
-        console.error("Invalid token:", error);
+        console.error("Error fetching user data:", error);
+        setError("Error fetching user data: " + error.message);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+    fetchUserData();
   }, []);
 
+  // Fetch schedule data once userid is available
   useEffect(() => {
-    if (!userid) return;
+    if (!userid || loading) return;
 
     const fetchData = async () => {
       try {
@@ -44,6 +56,7 @@ const WeeklySchedule = () => {
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
+            credentials: "include", // Send HTTP-only cookie
           }
         );
 
@@ -53,14 +66,17 @@ const WeeklySchedule = () => {
             if (!isAdmin) setName(data[0].username);
             setDays(data);
           }
+        } else {
+          setError("Failed to fetch schedule: " + response.statusText);
         }
       } catch (error) {
         console.error("Error fetching schedule:", error);
+        setError("Error fetching schedule: " + error.message);
       }
     };
 
     fetchData();
-  }, [userid, isAdmin]);
+  }, [userid, isAdmin, loading]);
 
   const groupedByEmployee = isAdmin
     ? days.reduce((acc, day) => {
@@ -76,7 +92,13 @@ const WeeklySchedule = () => {
       }, {})
     : null;
 
-  
+  if (loading) {
+    return <div className="text-center p-5">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-5 text-danger">{error}</div>;
+  }
 
   return (
     <div className="container-fluid p-4" style={{ minHeight: "auto" }}>
@@ -200,8 +222,6 @@ const WeeklySchedule = () => {
                   : `${name}'s Schedule`}
               </h2>
             </motion.div>
-
-           
           </div>
 
           {isAdmin && selectedEmployee && (
@@ -250,9 +270,6 @@ const WeeklySchedule = () => {
           </Row>
         </Col>
       </Row>
-
-      {/* Existing Form as Modal */}
-      
     </div>
   );
 };

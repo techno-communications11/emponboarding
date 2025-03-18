@@ -7,6 +7,7 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
 } from 'react-icons/fa';
+import axios from 'axios';
 import './Styles/resetpassword.css';
 
 const UpdatePassword = () => {
@@ -19,14 +20,39 @@ const UpdatePassword = () => {
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
+    setSuccess('');
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setSuccess('Password reset instructions sent to your email');
-      setError('');
-      setUserData({ email: '', password: '' });
+      // Send a POST request to the backend API
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/reset-password`,
+        {
+          email: userData.email,
+          newPassword: userData.password,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true, // Include cookies if needed
+        }
+      );
+
+      // Handle success response
+      if (response.status === 200) {
+        setSuccess('Password reset successfully!');
+        setUserData({ email: '', password: '' });
+      } else {
+        throw new Error(response.data.message || 'Password reset failed.');
+      }
     } catch (err) {
-      setError('Password reset failed. Please try again.');
+      // Handle errors
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          'Password reset failed. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -34,7 +60,7 @@ const UpdatePassword = () => {
 
   return (
     <div className="d-flex min-vh-100 bg-light">
-      <div className="container my-auto">
+      <div className="container-fluid my-auto">
         <div className="row justify-content-center">
           <div className="col-md-8 col-lg-6 col-xl-5">
             <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
@@ -62,7 +88,9 @@ const UpdatePassword = () => {
                       className="form-control border-start-0 ps-0 shadow-none border"
                       placeholder="Email address"
                       value={userData.email}
-                      onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                      onChange={(e) =>
+                        setUserData({ ...userData, email: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -77,7 +105,9 @@ const UpdatePassword = () => {
                       className="form-control border-start-0 ps-0 shadow-none border"
                       placeholder="New password"
                       value={userData.password}
-                      onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+                      onChange={(e) =>
+                        setUserData({ ...userData, password: e.target.value })
+                      }
                       required
                     />
                     <button
@@ -127,7 +157,7 @@ const UpdatePassword = () => {
                       <button
                         type="button"
                         className="btn-close"
-                        data-bs-dismiss="alert"
+                        onClick={() => setSuccess('')}
                         aria-label="Close"
                       ></button>
                     </div>
@@ -142,7 +172,7 @@ const UpdatePassword = () => {
                       <button
                         type="button"
                         className="btn-close"
-                        data-bs-dismiss="alert"
+                        onClick={() => setError('')}
                         aria-label="Close"
                       ></button>
                     </div>

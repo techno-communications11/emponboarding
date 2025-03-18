@@ -38,6 +38,7 @@ function Schedule() {
 
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/upload-schedule`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 

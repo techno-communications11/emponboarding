@@ -2,14 +2,14 @@ import db from "../dbConnection/db.js";
 
 const insertTrainingData = async (req, res) => {
     const { phone, TrainingStatus, TrainingCompletedDate, id } = req.body;
-    //  console.log(typeof(req.body.phone),"data usegcwedtrwa")
+     console.log(req.body,"data usegcwedtrwa")
 
     try {
         const query = `
-            INSERT INTO training_status (phone, training_status, training_completed_date, last_edited_id) 
-            VALUES (?, ?, ?, ?)`;
+            INSERT INTO training_status (phone, training_status, training_completed_date, last_edited_id,createdat) 
+            VALUES (?, ?, ?, ?,now())`;
 
-        const values = [Number(phone), TrainingStatus, TrainingCompletedDate, id];
+        const values = [phone, TrainingStatus, TrainingCompletedDate, id];
 
         await db.execute(query, values);
         

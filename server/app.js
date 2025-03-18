@@ -1,36 +1,27 @@
 import express from 'express';
-import dotenv from 'dotenv';
-import db from './dbConnection/db.js'; // Database connection
-import router from './router/auth.route.js'; // Router
 import cors from 'cors';
-import { Server } from "socket.io";
+import router from './router/auth.route.js'; // Your router file
+import cookieParser from 'cookie-parser';
 
-dotenv.config();
 const app = express();
 
-// Middleware to parse JSON
-app.use(express.json());
+// Middleware
+app.use(express.json()); // Parse JSON bodies
+app.use(cookieParser());
 
-// CORS Configuration
-const corsOptions = {
-  origin: process.env.CLIENT_URL, // Allow only requests from this domain
-  methods: ['GET', 'POST','PUT','DELETE'], // Allow specific HTTP methods
-  allowedHeaders: ['Content-Type'], // Allow specific headers
-};
-app.use(cors(corsOptions));
+// CORS configuration
+app.use(cors({
+  origin: 'http://localhost:3403', // Your frontend origin
+  credentials: true, // Allow credentials (cookies)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+}));
 
-// Serve static files from the 'public' folder (if needed)
-
-// Use routes
-app.use('/auth', router);
- console.log(db)
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+// Routes
+app.use('/auth', router); // Assuming your login route is under /auth
 
 // Start server
-const PORT = process.env.PORT || 3000; // Use environment variable if available
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+const PORT = process.env.PORT || 4503;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});

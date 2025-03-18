@@ -18,66 +18,87 @@ import {
   FaPlusCircle,
   FaEye,
 } from "react-icons/fa";
-import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import CustomAlert from "./universal/CustomAlert";
 import RaiseTicket from "./Tickets/RaiseTicket";
-import WeeklySchedule from '../components/SheduleComponent/WeeklySchedule'
+import WeeklySchedule from "../components/SheduleComponent/WeeklySchedule";
 import "./EmployeeHome.css"; // Custom CSS for Jira-like styling
 
 const EmployeeHome = () => {
   const [inputValue, setInputValue] = useState("");
   const [submittedData, setSubmittedData] = useState([]);
   const [filterDate, setFilterDate] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState("");
   const [show, setShow] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [role, setRole] = useState(null);
   const navigate = useNavigate();
 
-  const token = localStorage.getItem("token");
-  let id, role;
-  if (token) {
-    try {
-      const decodedToken = jwtDecode(token);
-      id = decodedToken.id;
-      role = decodedToken.role;
-    } catch (error) {
-      console.error("Invalid token:", error);
-    }
-  }
-
+  // Fetch user data from /users/me
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+          method: "GET",
+          credentials: "include", // Send HTTP-only cookie
+        });
+        if (!response.ok) {
+          throw new Error("Failed to authenticate. Please log in.");
+        }
+        const data = await response.json();
+        setUserId(data.id);
+        setRole(data.role);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setAlertMessage(error.message);
+        navigate("/"); // Redirect to login if not authenticated
+      }
+    };
+    fetchUserData();
+  }, [navigate]);
 
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/gettasks`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) throw new Error("Failed to fetch tasks");
-      const data = await response.json();
-      const filterWithId = data.filter((user) => user.userid === id);
-      setSubmittedData(filterWithId);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      setAlertMessage("Error fetching tasks.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch tasks once user data is available
+  useEffect(() => {
+    if (!userId) return; // Wait for userId
+
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/gettasks`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Send HTTP-only cookie
+        });
+        if (!response.ok) throw new Error("Failed to fetch tasks");
+        const data = await response.json();
+        const filterWithId = data.filter((user) => user.userid === userId);
+        setSubmittedData(filterWithId);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        setAlertMessage("Error fetching tasks: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [userId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
+    if (!userId) {
+      setAlertMessage("User not authenticated. Please log in.");
+      return;
+    }
     try {
       setLoading(true);
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/addtask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userid: id, taskdata: inputValue }),
+        credentials: "include", // Send HTTP-only cookie
+        body: JSON.stringify({ userid: userId, taskdata: inputValue }),
       });
       if (!response.ok) throw new Error("Failed to add task");
       const result = await response.json();
@@ -91,7 +112,7 @@ const EmployeeHome = () => {
       }
     } catch (error) {
       console.error("Error adding task:", error);
-      setAlertMessage("Error adding task.");
+      setAlertMessage("Error adding task: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -129,7 +150,11 @@ const EmployeeHome = () => {
   const handleTicket = () => setShow(true);
   const handleClose = () => setShow(false);
   const handleNavigate = () => navigate("/viewticket");
-   const handleTask=()=>navigate("/viewtasks")
+  const handleTask = () => navigate("/viewtasks");
+
+  if (loading && !userId) {
+    return <div className="text-center p-5">Loading...</div>;
+  }
 
   return (
     <div className="jira-container">
@@ -137,7 +162,9 @@ const EmployeeHome = () => {
       <Row>
         {/* Sidebar */}
         <Col md={3} className="jira-sidebar">
-          <h3 className="sidebar-title"><FaCog /> Actions</h3>
+          <h3 className="sidebar-title">
+            <FaCog /> Actions
+          </h3>
           <div className="filter-section">
             <Button
               variant="outline-success"
@@ -175,8 +202,10 @@ const EmployeeHome = () => {
 
         {/* Main Content */}
         <Col md={9} className="jira-main">
-          <h1 className="jira-title"><FaTasks /> Daily Task Updater</h1>
-          
+          <h1 className="jira-title">
+            <FaTasks /> Daily Task Updater
+          </h1>
+
           {/* Task Input */}
           <Card className="mb-4 task-input-card">
             <Card.Body>
@@ -188,12 +217,13 @@ const EmployeeHome = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Enter your daily task details here..."
                   className="task-input"
+                  disabled={!userId} // Disable if not authenticated
                 />
                 <Button
                   variant="primary"
                   type="submit"
                   className="submit-button"
-                  disabled={loading}
+                  disabled={loading || !userId}
                 >
                   <FaPaperPlane /> {loading ? "Sending..." : "Send"}
                 </Button>
@@ -204,7 +234,9 @@ const EmployeeHome = () => {
           {/* Weekly Schedule */}
           <Card className="mb-1 weekly-schedule-card">
             <Card.Body>
-              <h5 className="mb-1"><FaCalendarAlt className="me-2" /> Weekly Schedule</h5>
+              <h5 className="mb-1">
+                <FaCalendarAlt className="me-2" /> Weekly Schedule
+              </h5>
               <WeeklySchedule />
             </Card.Body>
           </Card>

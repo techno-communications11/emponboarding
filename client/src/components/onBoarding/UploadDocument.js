@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 function UploadDocument({email}) {
-     console.log(email,'sent email');
+    //  console.log(email,'sent email');
    
     const [file, setFile] = useState(null);
     const allowedFileTypes = ["application/pdf", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"];

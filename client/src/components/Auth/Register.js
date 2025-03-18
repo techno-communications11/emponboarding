@@ -1,40 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import { FaEye, FaEyeSlash, FaEdit } from 'react-icons/fa';
-import './Styles/Register.css';
+import React, { useState, useEffect } from "react";
+import { FaEye, FaEyeSlash, FaEdit } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import "./Styles/Register.css";
 
 const Register = () => {
   const [userData, setUserData] = useState({
-    email: '',
-    Technoid: '',
-    username:'',
-    password: '',
-    confirmPassword: '',
-    department: 'user',
+    email: "",
+    Technoid: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+    department: "user",
   });
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [filter, setFilter] = useState({ email: '',username:'', department: '', Technoid: '' });
+  const [filter, setFilter] = useState({ email: "", username: "", department: "", Technoid: "" });
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
+  // Check authentication and admin role
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+          method: "GET",
+          credentials: "include", // Send HTTP-only cookie
+        });
+        if (!response.ok) {
+          throw new Error("Unauthorized");
+        }
+        const data = await response.json();
+        if (data.role !== "Admin") {
+          setError("Only admins can access this page.");
+          navigate("/"); // Redirect non-admins
+        } else {
+          setIsAdmin(true);
+          fetchUsers(); // Fetch users only if admin
+        }
+      } catch (err) {
+        setError("Please log in to access this page.");
+        navigate("/"); // Redirect to login
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users`);
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users`, {
+        method: "GET",
+        credentials: "include", // Send HTTP-only cookie
+      });
       const data = await response.json();
       if (response.ok) {
         setUsers(data);
         setFilteredUsers(data);
       } else {
-        setError('Failed to fetch users');
+        setError("Failed to fetch users: " + data.message);
       }
     } catch (err) {
-      setError('Failed to fetch users');
+      setError("Failed to fetch users: " + err.message);
     }
   };
 
@@ -45,26 +77,34 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (userData.password !== userData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // Send HTTP-only cookie
         body: JSON.stringify(userData),
       });
       const data = await response.json();
       if (response.status === 201) {
-        setSuccess('Registration successful! Please login.');
-        setError('');
-        setUserData({ email: '',username:'', Technoid: '', password: '', confirmPassword: '', department: 'Admin' });
+        setSuccess("Registration successful! User added.");
+        setError("");
+        setUserData({
+          email: "",
+          username: "",
+          Technoid: "",
+          password: "",
+          confirmPassword: "",
+          department: "user",
+        });
         fetchUsers();
       } else {
-        setError(data.message || 'Registration failed');
+        setError(data.message || "Registration failed");
       }
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      setError("Registration failed: " + err.message);
     }
   };
 
@@ -72,21 +112,22 @@ const Register = () => {
     e.preventDefault();
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/${editingUser.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // Send HTTP-only cookie
         body: JSON.stringify(editingUser),
       });
       const data = await response.json();
       if (response.ok) {
-        setSuccess('User updated successfully');
-        setError('');
+        setSuccess("User updated successfully");
+        setError("");
         fetchUsers();
         setEditingUser(null);
       } else {
-        setError(data.message || 'Failed to update user');
+        setError(data.message || "Failed to update user");
       }
     } catch (err) {
-      setError('Failed to update user');
+      setError("Failed to update user: " + err.message);
     }
   };
 
@@ -114,15 +155,23 @@ const Register = () => {
     setFilteredUsers(filtered);
   };
 
+  if (loading) {
+    return <div className="text-center p-5">Loading...</div>;
+  }
+
+  if (!isAdmin) {
+    return null; // Redirect handled in useEffect
+  }
+
   return (
     <div className="container-fluid lite-container">
       {success && (
-        <div className="alert alert-success lite-alert" department="alert">
+        <div className="alert alert-success lite-alert" role="alert">
           {success}
         </div>
       )}
       {error && (
-        <div className="alert alert-danger lite-alert" department="alert">
+        <div className="alert alert-danger lite-alert" role="alert">
           {error}
         </div>
       )}
@@ -147,9 +196,9 @@ const Register = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="username" className="form-label lite-label">username</label>
+                  <label htmlFor="username" className="form-label lite-label">Username</label>
                   <input
-                    type="username"
+                    type="text"
                     className="form-control lite-input"
                     id="username"
                     name="username"
@@ -160,7 +209,7 @@ const Register = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="department" className="form-label lite-label">department</label>
+                  <label htmlFor="department" className="form-label lite-label">Department</label>
                   <select
                     className="form-select lite-input"
                     id="department"
@@ -178,7 +227,7 @@ const Register = () => {
                     <option value="Admin">Admin</option>
                   </select>
                 </div>
-                {userData.department === 'Employee' && (
+                {userData.department === "Employee" && (
                   <div className="col-md-6">
                     <label htmlFor="Technoid" className="form-label lite-label">Technoid</label>
                     <input
@@ -196,7 +245,7 @@ const Register = () => {
                 <div className="col-md-6 position-relative">
                   <label htmlFor="password" className="form-label lite-label">Password</label>
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     className="form-control lite-input"
                     id="password"
                     name="password"
@@ -216,7 +265,7 @@ const Register = () => {
                 <div className="col-md-6">
                   <label htmlFor="confirmPassword" className="form-label lite-label">Confirm Password</label>
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     className="form-control lite-input"
                     id="confirmPassword"
                     name="confirmPassword"
@@ -227,7 +276,9 @@ const Register = () => {
                   />
                 </div>
               </div>
-              <button type="submit" className="btn lite-btn-primary mt-3 w-100 text-white fw-bolder">Register</button>
+              <button type="submit" className="btn lite-btn-primary mt-3 w-100 text-white fw-bolder">
+                Register
+              </button>
             </form>
           </div>
         </div>
@@ -255,7 +306,7 @@ const Register = () => {
                   value={filter.department}
                   onChange={handleFilterChange}
                 >
-                  <option value="">Filter by role</option>
+                  <option value="">Filter by department</option>
                   <option value="Employee">Employee</option>
                   <option value="Contract">Contract</option>
                   <option value="Ntid Creation Team">Ntid Creation Team</option>
@@ -283,10 +334,10 @@ const Register = () => {
                     <div>
                       <p className="mb-1"><strong>Email:</strong> {user.email}</p>
                       <p className="mb-1"><strong>Username:</strong> {user.username}</p>
-                      <p className="mb-1"><strong>role:</strong> {user.department}</p>
-                      <p className="mb-1"><strong>Technoid:</strong> {user.technoid || 'N/A'}</p>
-                      <p className="mb-1"><strong>Salary:</strong> {user.salary || 'N/A'}</p>
-                      <p className="mb-1"><strong>Position:</strong> {user.position || 'N/A'}</p>
+                      <p className="mb-1"><strong>Department:</strong> {user.department}</p>
+                      <p className="mb-1"><strong>Technoid:</strong> {user.technoid || "N/A"}</p>
+                      <p className="mb-1"><strong>Salary:</strong> {user.salary || "N/A"}</p>
+                      <p className="mb-1"><strong>Position:</strong> {user.position_id || "N/A"}</p>
                     </div>
                     <button
                       className="btn lite-btn-edit"
@@ -323,7 +374,7 @@ const Register = () => {
                   type="number"
                   className="form-control lite-input"
                   id="editSalary"
-                  value={editingUser.salary || ''}
+                  value={editingUser.salary || ""}
                   onChange={(e) => setEditingUser({ ...editingUser, salary: e.target.value })}
                   placeholder="Enter salary"
                 />
@@ -334,7 +385,7 @@ const Register = () => {
                   type="text"
                   className="form-control lite-input"
                   id="editPosition"
-                  value={editingUser.position_id || ''}
+                  value={editingUser.position_id || ""}
                   onChange={(e) => setEditingUser({ ...editingUser, position_id: e.target.value })}
                   placeholder="Enter position"
                 />

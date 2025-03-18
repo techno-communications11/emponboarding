@@ -1,32 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link } from "react-router-dom";
 import { RiLogoutBoxRLine } from "react-icons/ri";
-import { jwtDecode } from "jwt-decode";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
-import "./Styles/CustomNavbar.css"; // Custom CSS for Jira-like styling
+import "./Styles/CustomNavbar.css";
+import { useMyContext } from "../universal/MyContext";
 
 const CustomNavbar = () => {
-  const [role, setRole] = useState("");
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        setRole(decodedToken.role);
-      } catch (error) {
-        console.error("Invalid token:", error);
-      }
-    } else {
-      navigate("/"); // Redirect to login page if no token
-    }
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
+  const { authState, logout } = useMyContext();
+  // const navigate = useNavigate();
 
   const handleNavLinkClick = () => {
     const navbar = document.querySelector(".navbar-collapse");
@@ -35,90 +16,95 @@ const CustomNavbar = () => {
     }
   };
 
+  // Show nothing while loading or if not authenticated
+  if (authState.loading || !authState.isAuthenticated) {
+    return null;
+  }
+
+  // Role-based home routes for Navbar.Brand
+  const homeRoute =
+    {
+      Admin: "/admindashboard",
+      Employee: "/announcements",
+      "Training Team": "/userdashboard",
+      "Ntid Setup team": "/userdashboard",
+      "Ntid Creation Team": "/userdashboard",
+      Contract: "/userdashboard",
+    }[authState.role] || "/userdashboard"; // Fallback to /userdashboard if role not matched
+
   return (
     <Navbar expand="lg" className="jira-navbar shadow-sm">
       <Container fluid>
-        {/* Logo and Brand Name */}
         <Navbar.Brand
           as={Link}
-          to={
-            role === "Admin"
-              ? "/adminDashboard"
-              : role === "Employee"
-              ? "/announcements"
-              : "/userDashboard"
-          }
+          to={homeRoute}
           className="d-flex align-items-center"
         >
           <img src="logo.webp" height={30} alt="Logo" className="jira-logo" />
           <span className="jira-brand ms-2">Techno Communications LLC</span>
         </Navbar.Brand>
-
-        {/* Toggle for mobile view */}
         <Navbar.Toggle aria-controls="navbarNav" className="jira-toggle" />
-
-        {/* Collapsible menu */}
         <Navbar.Collapse id="navbarNav">
           <Nav className="ms-auto d-flex align-items-center">
-            {role==="Employee"&&(
-            <Nav.Link
-            as={Link}
-            to="/employeehome"
-            className="fw-bolder jira-nav-link fw-bolder "
-            onClick={handleNavLinkClick}
-          >
-            Update Task
-          </Nav.Link>
+            {authState.role === "Employee" && (
+              <>
+                <Nav.Link
+                  as={Link}
+                  to="/employeehome"
+                  className="fw-bolder jira-nav-link"
+                  onClick={handleNavLinkClick}
+                >
+                  Update Task
+                </Nav.Link>
+                
+              </>
             )}
-            {/* Shared Links */}
-            {role === "Contract" && (
+            {authState.role === "Contract" && (
               <Nav.Link
                 as={Link}
                 to="/contract"
-                className="fw-bolder jira-nav-link fw-bolder "
+                className="fw-bolder jira-nav-link"
                 onClick={handleNavLinkClick}
               >
                 Contract Data
               </Nav.Link>
             )}
-            {role === "Training Team" && (
+            {authState.role === "Training Team" && (
               <Nav.Link
                 as={Link}
                 to="/training"
-                className="jira-nav-link fw-bolder"
+                className="fw-bolder jira-nav-link"
                 onClick={handleNavLinkClick}
               >
                 Training Data
               </Nav.Link>
             )}
-            {role === "Ntid Setup team" && (
+            {authState.role === "Ntid Setup team" && (
               <Nav.Link
                 as={Link}
                 to="/ntidsetup"
-                className="jira-nav-link fw-bolder"
+                className="fw-bolder jira-nav-link"
                 onClick={handleNavLinkClick}
               >
                 NTID Setup Data
               </Nav.Link>
             )}
-            {role === "Ntid Creation Team" && (
+            {authState.role === "Ntid Creation Team" && (
               <Nav.Link
                 as={Link}
                 to="/ntidcreation"
-                className="jira-nav-link fw-bolder"
+                className="fw-bolder jira-nav-link"
                 onClick={handleNavLinkClick}
               >
                 NTID Creation Data
               </Nav.Link>
             )}
-
-            {/* Admin-only Links */}
-            {role === "Admin" && (
+            {authState.role === "Admin" && (
               <>
                 <Nav.Link
                   as={Link}
                   to="/viewticket"
-                  className="jira-nav-link fw-bolder fw-bolder"
+                  className="fw-bolder jira-nav-link"
                   onClick={handleNavLinkClick}
                 >
                   Tickets
@@ -126,7 +112,7 @@ const CustomNavbar = () => {
                 <Nav.Link
                   as={Link}
                   to="/shedule"
-                  className="jira-nav-link fw-bolder"
+                  className="fw-bolder jira-nav-link"
                   onClick={handleNavLinkClick}
                 >
                   Schedule
@@ -134,15 +120,17 @@ const CustomNavbar = () => {
                 <Nav.Link
                   as={Link}
                   to="/dailyupdates"
-                  className="jira-nav-link fw-bolder"
+                  className="fw-bolder jira-nav-link"
                   onClick={handleNavLinkClick}
                 >
                   Daily Task
                 </Nav.Link>
+                
+                
                 <Nav.Link
                   as={Link}
                   to="/register"
-                  className="jira-nav-link fw-bolder"
+                  className="fw-bolder jira-nav-link"
                   onClick={handleNavLinkClick}
                 >
                   Register
@@ -150,19 +138,17 @@ const CustomNavbar = () => {
                 <Nav.Link
                   as={Link}
                   to="/resetpassword"
-                  className="jira-nav-link fw-bolder"
+                  className="fw-bolder jira-nav-link"
                   onClick={handleNavLinkClick}
                 >
                   Reset Password
                 </Nav.Link>
               </>
             )}
-
-            {/* Logout Button */}
             <Button
               variant="outline-danger"
               className="jira-logout-btn ms-2"
-              onClick={handleLogout}
+              onClick={logout}
             >
               <RiLogoutBoxRLine className="me-1" /> Logout
             </Button>

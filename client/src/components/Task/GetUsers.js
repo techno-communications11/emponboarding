@@ -2,6 +2,7 @@ const GetUsers = async () => {
   try {
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getusers`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

@@ -11,7 +11,6 @@ import {
 import { useMyContext } from "../universal/MyContext";
 import { Form } from "react-bootstrap";
 import "./Styles/ShowTask.css"; // Custom CSS for Jira-like styling
-import { jwtDecode } from "jwt-decode";
 import CustomAlert from "../universal/CustomAlert";
 
 function ShowTask() {
@@ -20,44 +19,58 @@ function ShowTask() {
   const [error, setError] = useState(null);
   const { users } = useMyContext();
   const [filterDate, setFilterDate] = useState("");
-  const [role, setRole] = useState("");
-  const [userId, setUserId] = useState("");
-  const[alert,setAlert]=useState("");
+  const [role, setRole] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [alert, setAlert] = useState("");
 
-  // Decode token and set role/userId
+  // Fetch user data from /users/me
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    const fetchUserData = async () => {
       try {
-        const decodedToken = jwtDecode(token);
-        setRole(decodedToken.role);
-        setUserId(decodedToken.id);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+          method: "GET",
+          credentials: "include", // Send HTTP-only cookie
+        });
+        console.log(response,'Users')
+        if (!response.ok) {
+          throw new Error("Failed to authenticate. Please log in.");
+        }
+        const data = await response.json();
+        setRole(data.role);
+        setUserId(data.id);
       } catch (error) {
-        console.error("Invalid token:", error);
-        setError("Invalid token. Please log in again.");
+        console.error("Error fetching user data:", error);
+        setError(error.message);
       }
-    }
+    };
+    fetchUserData();
   }, []);
-  const handleClose=()=>setAlert("");
 
+  // Fetch tasks once user data is available
   useEffect(() => {
+    if (!userId || role === null) return; // Wait for user data to be set
+
     const fetchTaskData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/taskdata`);
-        if (!response.ok) throw new Error("Failed to fetch task data");
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/taskdata`, {
+          method: "GET",
+          credentials: "include", // Send HTTP-only cookie
+        });
+         console.log(response,'taskdata')
+        if (!response.ok) {
+          throw new Error("Failed to fetch task data: " + response.statusText);
+        }
         const data = await response.json();
-        
-        let finalTasks = data.data;
+
+        let finalTasks = data.data || [];
 
         // Filter based on role
         if (role === "Employee") {
-          finalTasks = data.data.filter((task) => task.user_id === userId);
-        } 
-        // Filter by selected employees
-        else if (users && users.length > 0) {
+          finalTasks = finalTasks.filter((task) => task.user_id === userId);
+        } else if (users && users.length > 0) {
+          // Filter by selected employees from context (for admins)
           const userNames = users.map((user) => user.name);
-          // console.log("Selected user names:", userNames);
-          finalTasks = data.data.filter((task) => 
+          finalTasks = finalTasks.filter((task) =>
             userNames.includes(task.username)
           );
         }
@@ -65,14 +78,15 @@ function ShowTask() {
         // Apply date filter if filterDate exists
         if (filterDate) {
           finalTasks = finalTasks.filter((task) => {
-            const taskDueDate = new Date(task.created_at).toISOString().split("T")[0];
-            return taskDueDate === filterDate;
+            const taskCreatedDate = new Date(task.created_at).toISOString().split("T")[0];
+            return taskCreatedDate === filterDate;
           });
         }
 
         console.log("Filtered tasks:", finalTasks); // Debug log
         setTasks(finalTasks);
       } catch (error) {
+        console.error("Error fetching tasks:", error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -86,24 +100,28 @@ function ShowTask() {
     if (window.confirm("Are you sure you want to delete this task?")) {
       try {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/deletetask`, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: taskId }), // send taskId in the body
+          credentials: "include", // Send HTTP-only cookie
+          body: JSON.stringify({ id: taskId }), // Send taskId in the body
         });
-   setAlert("successfully deleted..")
-        if (response.ok) {
-          setTasks(tasks.filter((task) => task.task_id !== taskId));
-        } else {
-          setAlert("Failed to delete task.");
+
+        if (!response.ok) {
+          throw new Error("Failed to delete task: " + response.statusText);
         }
+
+        setTasks(tasks.filter((task) => task.task_id !== taskId));
+        setAlert("Successfully deleted.");
       } catch (error) {
-        setAlert("Error deleting task:", error);
+        console.error("Error deleting task:", error);
+        setAlert(error.message || "Error deleting task.");
       }
     }
   };
-  
+
+  const handleClose = () => setAlert("");
 
   const getPriorityBadgeColor = (priority) => {
     switch (priority.toLowerCase()) {
@@ -196,12 +214,14 @@ function ShowTask() {
                     </div>
                   </div>
                 </div>
-                {role==='Admin'&&<button
-                  className="btn button "
-                  onClick={() => handleDelete(task.task_id)}
-                >
-                  <FaTrashAlt /> Delete
-                </button>}
+                {role === "Admin" && (
+                  <button
+                    className="btn button"
+                    onClick={() => handleDelete(task.task_id)}
+                  >
+                    <FaTrashAlt /> Delete
+                  </button>
+                )}
               </div>
             </div>
           ))}

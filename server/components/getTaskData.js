@@ -13,7 +13,7 @@ const   getTaskData = async (req, res) => {
     c.created_at,
     u.username
 FROM 
-    TaskAssignments t 
+    taskassignments t 
 LEFT JOIN 
     taskcreationtable c 
     ON t.task_id = c.id
@@ -30,7 +30,7 @@ ORDER BY
 
     // Execute the query
     const [result] = await db.execute(query);
-     console.log(result);
+     console.log(result,'result');
 
     // Send the result as a response
     res.status(200).json({ success: true, data: result });
