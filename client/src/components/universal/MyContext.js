@@ -7,40 +7,47 @@ export function MyProvider({ children }) {
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
     role: null,
-    userId: null, // Optional: useful for user-specific actions
-    loading: true, // Track initial auth check
+    userId: null,
+    loading: true,
   });
 
   // Check auth status on mount
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include",
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setAuthState({
-            isAuthenticated: true,
-            role: data.role,
-            userId: data.id,
-            loading: false,
+      let retries = 3; // Number of retries
+      while (retries > 0) {
+        try {
+          const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+            method: "GET",
+            credentials: "include",
           });
-        } else {
-          setAuthState({ isAuthenticated: false, role: null, userId: null, loading: false });
+          if (response.ok) {
+            const data = await response.json();
+            setAuthState({
+              isAuthenticated: true,
+              role: data.role,
+              userId: data.id,
+              loading: false,
+            });
+            return; // Exit on success
+          } else {
+            console.error("Auth check failed:", response.statusText);
+            retries--;
+          }
+        } catch (error) {
+          console.error("Error checking auth:", error);
+          retries--;
         }
-      } catch (error) {
-        console.error("Error checking auth:", error);
-        setAuthState({ isAuthenticated: false, role: null, userId: null, loading: false });
       }
+      // If all retries fail
+      setAuthState({ isAuthenticated: false, role: null, userId: null, loading: false });
     };
     checkAuth();
   }, []);
 
   // Function to add or update users array
   const addUser = (newUsers) => {
-    setUsers(newUsers); // Expects an array of users
+    setUsers(newUsers);
   };
 
   // Function to update auth state (e.g., after login/logout)
@@ -55,7 +62,12 @@ export function MyProvider({ children }) {
         method: "POST",
         credentials: "include",
       });
+      // Clear local state or storage
+      localStorage.removeItem("userData"); // Example
+      // Update auth state
       updateAuth(false, null, null);
+      // Redirect to login page (if using React Router)
+      window.location.href = "/login"; // Example
     } catch (error) {
       console.error("Logout failed:", error);
       updateAuth(false, null, null);
