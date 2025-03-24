@@ -1,8 +1,9 @@
 import db from "../../dbConnection/db.js";
+import bcrypt from "bcrypt";
 // Register a new user
 const Register = async (req, res) => {
-  const { email, username,Technoid, password, department } = req.body;
-   console.log(req.body,'register')
+  const { email, username, Technoid, password, department } = req.body;
+  console.log(req.body, 'register');
 
   // Validate input
   if (!email || !password || !department) {
@@ -17,11 +18,12 @@ const Register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
     // Insert the new user into the database
     const [result] = await db.execute(
-        'INSERT INTO users (email, username,Technoid, password, department) VALUES (?, ?, ?, ?,?)',
-        [email, username,Technoid, password, department]
-      );
+      'INSERT INTO users (email, username, Technoid, password, department) VALUES (?, ?, ?, ?, ?)',
+      [email, username, Technoid, hashedPassword, department]
+    );
 
     res.status(201).json({ message: 'User registered successfully', userId: result.insertId });
   } catch (err) {
