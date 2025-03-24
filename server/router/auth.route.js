@@ -26,7 +26,7 @@ import TaskDataUpload from '../components/TaskDataUpload.js';
 import ViewTicket from '../components/ViewTicket.js';
 import updatestatus from '../components/updatestatus.js';
 import Uploadshedule from '../components/UploadShedule.js';
-import getUsers from '../components/getusers.js';
+import getUsers from '../components/getUsers.js';
 import getweekshedule from '../components/getweeklyshedule.js';
 import assignTask from '../components/TaskCreation.js';
 import getTaskData from '../components/getTaskdata.js';
