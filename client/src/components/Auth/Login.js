@@ -1,15 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useMyContext } from "../universal/MyContext";
+import CustomAlert from "../universal/CustomAlert";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { updateAuth } = useMyContext();
+  const [showAlert, setShowAlert] = useState(false);
+
+  // Clear error when user starts typing
+  useEffect(() => {
+    if (error) {
+      setError("");
+    }
+  }, [credentials.email, credentials.password]);
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -18,7 +28,24 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
+
     try {
+      // Validate email format
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email)) {
+        setError("Please enter a valid email address");
+        setShowAlert(true);
+        return;
+      }
+
+      // Validate password length
+      if (credentials.password.length < 6) {
+        setError("Password must be at least 6 characters");
+        setShowAlert(true);
+        return;
+      }
+
+      // Attempt to log in
       const loginResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -26,54 +53,57 @@ const Login = () => {
         body: JSON.stringify(credentials),
       });
 
-      const loginData = await loginResponse.json();
       if (!loginResponse.ok) {
-        throw new Error(loginData.error || "Login failed");
+        const errorData = await loginResponse.json();
+        setError(errorData.message || "Invalid email or password");
+        setShowAlert(true);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log("Login attempt failed");
+        }
+        return;
       }
 
+      // Fetch user data only if login is successful
       const userResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
         method: "GET",
         credentials: "include",
       });
 
-      const userData = await userResponse.json();
       if (!userResponse.ok) {
-        throw new Error(userData.error || "Failed to fetch user data");
+        setError("Failed to fetch user data");
+        setShowAlert(true);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log("User data fetch failed");
+        }
+        return;
       }
 
+      const userData = await userResponse.json();
       const { role, id } = userData;
-      console.log("Login successful, role:", role);
 
       // Update global auth state
       updateAuth(true, role, id);
 
       // Navigate based on role
-      switch (role) {
-        case "Admin":
-          navigate("/admindashboard", { replace: true });
-          break;
-        case "Employee":
-          navigate("/announcements", { replace: true });
-          break;
-        case "Training Team":
-          navigate("/userdashboard", { replace: true });
-          break;
-        case "Ntid Setup team":
-          navigate("/userdashboard", { replace: true });
-          break;
-        case "Ntid Creation Team":
-          navigate("/userdashboard", { replace: true });
-          break;
-        case "Contract":
-          navigate("/userdashboard", { replace: true });
-          break;
-        default:
-          navigate("/userdashboard", { replace: true });
-          break;
-      }
+      const roleRoutes = {
+        Admin: "/admindashboard",
+        Employee: "/announcements",
+        "Training Team": "/userdashboard",
+        "Ntid Setup team": "/userdashboard",
+        "Ntid Creation Team": "/userdashboard",
+        Contract: "/userdashboard",
+      };
+
+      navigate(roleRoutes[role] || "/userdashboard", { replace: true });
+
     } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
-      console.error("Login error:", err.message);
+      setError("An error occurred during login");
+      setShowAlert(true);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Login process encountered an error");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -162,19 +192,15 @@ const Login = () => {
               border: "1px solid rgba(225, 1, 116, 0.1)",
             }}
           >
-            <div className="card-body  p-5">
-              {error && (
-                <motion.div
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  className="alert alert-danger rounded-3"
-                  style={{
-                    borderColor: "#E10174",
-                  }}
-                >
-                  {error}
-                </motion.div>
+            <div className="card-body p-5">
+              {showAlert && (
+                <CustomAlert
+                  message={error}
+                  type="error"
+                  onClose={() => setShowAlert(false)}
+                />
               )}
+
               <form onSubmit={handleSubmit}>
                 <h4
                   className="mb-4 text-center fw-bold"
@@ -184,6 +210,8 @@ const Login = () => {
                 >
                   Login to Your Account
                 </h4>
+                
+                {/* Email Input */}
                 <div className="mb-3 position-relative">
                   <input
                     type="email"
@@ -194,6 +222,7 @@ const Login = () => {
                     onChange={handleChange}
                     placeholder="Enter email"
                     required
+                    autoComplete="username"
                     style={{
                       borderColor: "#E10174",
                       backgroundColor: "rgba(255, 255, 255, 0.8)",
@@ -205,6 +234,8 @@ const Login = () => {
                     color="#E10174"
                   />
                 </div>
+                
+                {/* Password Input */}
                 <div className="mb-3 position-relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -215,6 +246,8 @@ const Login = () => {
                     onChange={handleChange}
                     placeholder="Enter password"
                     required
+                    minLength="6"
+                    autoComplete="current-password"
                     style={{
                       borderColor: "#E10174",
                       backgroundColor: "rgba(255, 255, 255, 0.8)",
@@ -233,24 +266,35 @@ const Login = () => {
                       color: "#E10174",
                     }}
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </motion.span>
                 </div>
+                
+                {/* Submit Button */}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   type="submit"
                   className="btn text-white w-100 mt-3 rounded-pill"
+                  disabled={isLoading}
                   style={{
                     backgroundColor: "#E10174",
                     borderColor: "#E10174",
                     padding: "12px",
                     boxShadow: "0 10px 20px rgba(225, 1, 116, 0.3)",
                     transition: "all 0.3s ease",
+                    opacity: isLoading ? 0.7 : 1,
                   }}
                 >
-                  Login
+                  {isLoading ? (
+                    <div className="spinner-border spinner-border-sm" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  ) : (
+                    "Login"
+                  )}
                 </motion.button>
               </form>
             </div>
