@@ -30,5 +30,8 @@
     "resend": "^4.1.2",
     "socket.io": "^4.8.1",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
