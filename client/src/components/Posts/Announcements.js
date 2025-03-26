@@ -58,6 +58,7 @@ const Announcements = () => {
           shared: false,
         }));
         setAnnouncements(enrichedData);
+        
       } catch (error) {
         console.error("Error fetching announcements:", error);
         setError("Failed to load announcements: " + error.message);
@@ -220,5 +221,5 @@ const Announcements = () => {
     </div>
   );
 };
-
+ 
 export default Announcements;

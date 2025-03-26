@@ -362,7 +362,7 @@ const NtidCreation = () => {
                             <span className="text-nowrap">{row.temp_password}</span>
                           ) : (
                             <input
-                              type="password"
+                              type="text"
                               name="temp_password"
                               value={rowFormData.temp_password || row.temp_password || ""}
                               onChange={(e) => handleInputChange(e, row.phone)}

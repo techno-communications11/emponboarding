@@ -17,6 +17,7 @@ const getntidsetup = async (req, res) => {
     ns.ntid_setup_status, 
     ns.ntid_setup_date, 
     ns.idv_status, 
+    ns.megentau,
     ns.idv_docu, 
     ns.yubikey_pin, 
     ns.rtpos_pin, 

@@ -117,6 +117,7 @@ const AdminDashboard = () => {
               <th style={{backgroundColor:"#E10174",color:'white'}}>NTID Created</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>NTID SetUp Done</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>NTID Setup Pending</th>
+              <th style={{backgroundColor:"#E10174",color:'white'}}>megentau status</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>IDV Done</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>IDV Pending</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>Passport</th>
@@ -139,6 +140,7 @@ const AdminDashboard = () => {
                 <td>{row.ntidsCreated || 0}</td>
                 <td>{row.ntidsDone || 0}</td>
                 <td>{row.ntidsSetupPending || 0}</td>
+                <td>{row.megentau || 0}</td>
                 <td>{row.idvDone || 0}</td>
                 <td>{row.idvPending || 0}</td>
                 <td>{row.passport || 0}</td>
@@ -159,6 +161,7 @@ const AdminDashboard = () => {
               <td>{grandTotal.ntidsCreated || 0}</td>
               <td>{grandTotal.ntidsDone || 0}</td>
               <td>{grandTotal.ntidsSetupPending || 0}</td>
+              <td>{grandTotal.megentau || 0}</td>
               <td>{grandTotal.idvDone || 0}</td>
               <td>{grandTotal.idvPending || 0}</td>
               <td>{grandTotal.passport || 0}</td>

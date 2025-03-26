@@ -64,6 +64,7 @@ function AnnouncementForm() {
     formData.append("title", title);
     formData.append("content", content);
     if (image) formData.append("image", image);
+    setLoading(true);
 
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/createannouncement`, {
@@ -76,11 +77,14 @@ function AnnouncementForm() {
         throw new Error(errorData.message || "Failed to post announcement.");
       }
       setSuccess("Announcement posted successfully!");
+     window.location.reload();
+
       setTitle("");
       setContent("");
       setImage(null);
       setImagePreview(null);
       setFilter("none");
+      setLoading(false);
     } catch (error) {
       console.error("Error posting announcement:", error);
       setError(error.message);
@@ -96,7 +100,13 @@ function AnnouncementForm() {
   };
 
   if (loading) {
-    return <div className="text-center p-5">Loading...</div>;
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   return (

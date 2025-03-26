@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaUser,
@@ -33,49 +33,42 @@ function NtidSetup() {
   const [role, setRole] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch user data from /users/me
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (!response.ok) {
-          throw new Error("Failed to authenticate. Please log in.");
-        }
-        const data = await response.json();
-        if (data.role !== "Ntid Setup team") {
-          setAlertMessage("Only Ntid Setup team members can access this page.");
-          navigate("/"); // Redirect unauthorized roles
-        } else {
-          setUserId(data.id);
-          setRole(data.role);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setAlertMessage(error.message);
-        navigate("/"); // Redirect to login
+  // Fetch user data
+  const fetchUserData = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to authenticate. Please log in.");
       }
-    };
-    fetchUserData();
+      const data = await response.json();
+      if (data.role !== "Ntid Setup team") {
+        setAlertMessage("Only Ntid Setup team members::$_ can access this page.");
+        navigate("/");
+      } else {
+        setUserId(data.id);
+        setRole(data.role);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setAlertMessage(error.message);
+      navigate("/");
+    }
   }, [navigate]);
 
-  // Fetch NTID setup data once user is authenticated
-  useEffect(() => {
-    if (!userId || !role) return; // Wait for user data
-    getData();
-  }, [userId, role]);
-
-  const getData = async () => {
+  // Fetch NTID setup data
+  const getData = useCallback(async () => {
+    if (!userId || !role) return;
     setIsLoading(true);
     setAlertMessage("");
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getntidsetup`, {
         method: "GET",
-        credentials: "include", // Send HTTP-only cookie
+        credentials: "include",
       });
-      if (response.status !== 200) {
+      if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const result = await response.json();
@@ -83,13 +76,21 @@ function NtidSetup() {
     } catch (error) {
       console.error("Error fetching data:", error);
       setAlertMessage(`Failed to load data: ${error.message}`);
-      setData([]); // Fallback to empty array on error
+      setData([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, role]);
 
-  const handleInputChange = (e, phone, ntid) => {
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
+  useEffect(() => {
+    getData();
+  }, [getData]);
+
+  const handleInputChange = useCallback((e, phone, ntid) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -101,9 +102,9 @@ function NtidSetup() {
         },
       },
     }));
-  };
+  }, []);
 
-  const handleUpdate = async (phone, ntid) => {
+  const handleUpdate = useCallback(async (phone, ntid) => {
     if (!userId) {
       setAlertMessage("User not authenticated. Please log in.");
       return;
@@ -112,11 +113,26 @@ function NtidSetup() {
 
     setIsSubmitting(true);
     try {
+      const payload = {
+        phone,
+        ntid,
+        id: userId,
+        yubiKeyStatus: rowFormData.yubiKeyStatus,
+        ntidSetupStatus: rowFormData.ntidSetupStatus,
+        ntidSetupDate: rowFormData.ntidSetupDate,
+        idvStatus: rowFormData.idvStatus,
+        megentau: rowFormData.megentau, // Include megentau in payload
+        idvDocu: rowFormData.idvDocu,
+        yubiKeyPin: rowFormData.yubiKeyPin,
+        rtposPin: rowFormData.rtposPin,
+        comments: rowFormData.comments,
+      };
+
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/insertData`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // Send HTTP-only cookie
-        body: JSON.stringify({ ...rowFormData, phone, ntid, id: userId }),
+        credentials: "include",
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -149,6 +165,12 @@ function NtidSetup() {
                       ? 1
                       : 0
                     : item.idv_status,
+                megentau:
+                  rowFormData.megentau !== undefined
+                    ? rowFormData.megentau === "Yes"
+                      ? 1
+                      : 0
+                    : item.megentau, // Properly update megentau
                 idv_docu: rowFormData.idvDocu || item.idv_docu,
                 yubikey_pin: rowFormData.yubiKeyPin || item.yubikey_pin,
                 rtpos_pin: rowFormData.rtposPin || item.rtpos_pin,
@@ -163,31 +185,22 @@ function NtidSetup() {
         return { ...prev, [phone]: updatedPhoneData };
       });
       setAlertMessage(result.message || "NTID setup updated successfully!");
-      await getData(); // Refresh data
+      await getData();
     } catch (error) {
       console.error("Error updating data:", error);
       setAlertMessage(`Failed to update data: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [userId, formData, getData]);
 
-  const handleAssign = async (phone, ntid) => {
+  const handleAssign = useCallback(async (phone, ntid) => {
     if (!userId) {
       setAlertMessage("User not authenticated. Please log in.");
       return;
     }
     const item = data.find((d) => d.phone === phone && d.ntid === ntid);
-    if (
-      !item.yubikey_status ||
-      !item.ntid_setup_status ||
-      !item.ntid_setup_date ||
-      !item.idv_status ||
-      !item.idv_docu ||
-      !item.yubikey_pin ||
-      !item.rtpos_pin ||
-      !item.comments
-    ) {
+    if (!isFullyFilled(item)) {
       setAlertMessage("All NTID setup fields must be filled before assigning.");
       return;
     }
@@ -197,7 +210,7 @@ function NtidSetup() {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/assignNtidSetup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // Send HTTP-only cookie
+        credentials: "include",
         body: JSON.stringify({ phone, ntid, id: userId }),
       });
 
@@ -213,16 +226,16 @@ function NtidSetup() {
         )
       );
       setAlertMessage(result.message || "NTID setup assigned successfully!");
-      await getData(); // Refresh data
+      await getData();
     } catch (error) {
       console.error("Error assigning data:", error);
       setAlertMessage(`Failed to assign data: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [userId, data, getData]);
 
-  const isFullyFilled = (item) =>
+  const isFullyFilled = useCallback((item) =>
     item.yubikey_status !== null &&
     item.yubikey_status !== undefined &&
     item.ntid_setup_status !== null &&
@@ -230,10 +243,12 @@ function NtidSetup() {
     item.ntid_setup_date &&
     item.idv_status !== null &&
     item.idv_status !== undefined &&
+    item.megentau !== null &&
+    item.megentau !== undefined &&
     item.idv_docu &&
     item.yubikey_pin &&
     item.rtpos_pin &&
-    item.comments;
+    item.comments, []);
 
   const closeAlert = () => setAlertMessage("");
 
@@ -274,59 +289,26 @@ function NtidSetup() {
           ) : (
             <div className="table-responsive">
               <table className="table table-hover table-bordered align-middle">
-                <thead >
-                  <tr className="text-nowrap" >
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaUser className="me-1"  /> First Name
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaUser className="me-1" /> Last Name
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaPhone className="me-1" /> Phone
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaMapMarkerAlt className="me-1" /> Market
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaCalendarAlt className="me-1" /> Joining Date
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaStore className="me-1" /> Main Store
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaKey className="me-1" /> NTID
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaEnvelope className="me-1" /> Email
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaLock className="me-1" /> Password
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaFingerprint className="me-1" /> YUBI Key Availability
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaUserShield className="me-1" /> ID Setup
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaCalendarCheck className="me-1" /> Setup Date
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaIdCard className="me-1" /> IDV Status
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaFileAlt className="me-1" /> IDV Doc
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaKeyboard className="me-1" /> YUBI PIN
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaClipboardList className="me-1" /> RTPOS PIN
-                    </th>
-                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
-                      <FaComments className="me-1" /> Comments
-                    </th>
+                <thead>
+                  <tr className="text-nowrap">
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaUser className="me-1" /> First Name</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaUser className="me-1" /> Last Name</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaPhone className="me-1" /> Phone</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaMapMarkerAlt className="me-1" /> Market</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaCalendarAlt className="me-1" /> Joining Date</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaStore className="me-1" /> Main Store</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaKey className="me-1" /> NTID</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaEnvelope className="me-1" /> Email</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaLock className="me-1" /> Password</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaFingerprint className="me-1" /> YUBI Key Availability</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaUserShield className="me-1" /> ID Setup</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaCalendarCheck className="me-1" /> Setup Date</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaIdCard className="me-1" /> IDV Status</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaFileAlt className="me-1" /> IDV Doc</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaKeyboard className="me-1" /> YUBI PIN</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaClipboardList className="me-1" /> RTPOS PIN</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaClipboardList className="me-1" /> Megentau</th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}><FaComments className="me-1" /> Comments</th>
                     <th style={{ backgroundColor: "#E10174", color: "white" }}>Action</th>
                   </tr>
                 </thead>
@@ -356,11 +338,7 @@ function NtidSetup() {
                               name="yubiKeyStatus"
                               value={
                                 rowFormData.yubiKeyStatus ||
-                                (item.yubikey_status === 1
-                                  ? "Yes"
-                                  : item.yubikey_status === 0
-                                  ? "No"
-                                  : "")
+                                (item.yubikey_status === 1 ? "Yes" : item.yubikey_status === 0 ? "No" : "")
                               }
                               onChange={(e) => handleInputChange(e, item.phone, item.ntid)}
                               className="form-control form-control-sm"
@@ -374,22 +352,14 @@ function NtidSetup() {
                         <td className="text-nowrap">
                           {isAssigned ? (
                             <span className="badge text-dark">
-                              {item.ntid_setup_status === 1
-                                ? "Yes"
-                                : item.ntid_setup_status === 0
-                                ? "No"
-                                : "-"}
+                              {item.ntid_setup_status === 1 ? "Yes" : item.ntid_setup_status === 0 ? "No" : "-"}
                             </span>
                           ) : (
                             <select
                               name="ntidSetupStatus"
                               value={
                                 rowFormData.ntidSetupStatus ||
-                                (item.ntid_setup_status === 1
-                                  ? "Yes"
-                                  : item.ntid_setup_status === 0
-                                  ? "No"
-                                  : "")
+                                (item.ntid_setup_status === 1 ? "Yes" : item.ntid_setup_status === 0 ? "No" : "")
                               }
                               onChange={(e) => handleInputChange(e, item.phone, item.ntid)}
                               className="form-control form-control-sm"
@@ -423,11 +393,7 @@ function NtidSetup() {
                               name="idvStatus"
                               value={
                                 rowFormData.idvStatus ||
-                                (item.idv_status === 1
-                                  ? "Yes"
-                                  : item.idv_status === 0
-                                  ? "No"
-                                  : "")
+                                (item.idv_status === 1 ? "Yes" : item.idv_status === 0 ? "No" : "")
                               }
                               onChange={(e) => handleInputChange(e, item.phone, item.ntid)}
                               className="form-control form-control-sm"
@@ -475,6 +441,27 @@ function NtidSetup() {
                               onChange={(e) => handleInputChange(e, item.phone, item.ntid)}
                               className="form-control form-control-sm"
                             />
+                          )}
+                        </td>
+                        <td className="text-nowrap">
+                          {isAssigned ? (
+                            <span className="badge text-dark">
+                              {item.megentau === 1 ? "Yes" : item.megentau === 0 ? "No" : "-"}
+                            </span>
+                          ) : (
+                            <select
+                              name="megentau"
+                              value={
+                                rowFormData.megentau ||
+                                (item.megentau === 1 ? "Yes" : item.megentau === 0 ? "No" : "")
+                              }
+                              onChange={(e) => handleInputChange(e, item.phone, item.ntid)}
+                              className="form-control form-control-sm"
+                            >
+                              <option value="">Select</option>
+                              <option value="Yes">Yes</option>
+                              <option value="No">No</option>
+                            </select>
                           )}
                         </td>
                         <td className="text-nowrap">

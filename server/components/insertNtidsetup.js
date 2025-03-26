@@ -3,7 +3,20 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const insertNtidSetup = async (req, res) => {
-  const { phone, ntid, yubiKeyStatus, ntidSetupStatus, ntidSetupDate, idvStatus, idvDocu, yubiKeyPin, rtposPin, comments, id } = req.body;
+  const { 
+    phone, 
+    ntid, 
+    yubiKeyStatus, 
+    ntidSetupStatus, 
+    ntidSetupDate, 
+    idvStatus, 
+    idvDocu, 
+    yubiKeyPin, 
+    rtposPin, 
+    comments, 
+    megentau, // Added megentau
+    id 
+  } = req.body;
   console.log("Request Body for Insert/Update:", req.body);
 
   if (!phone || !ntid || !id) {
@@ -17,8 +30,8 @@ const insertNtidSetup = async (req, res) => {
     if (existing.length === 0) {
       const insertQuery = `
         INSERT INTO ntid_setup
-        (phone, ntid, yubikey_status, ntid_setup_status, ntid_setup_date, idv_status, idv_docu, yubikey_pin, rtpos_pin, comments, last_edited_id, ntid_setup_assigned)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);
+        (phone, ntid, yubikey_status, ntid_setup_status, ntid_setup_date, idv_status, idv_docu, yubikey_pin, rtpos_pin, comments, megentau, last_edited_id, ntid_setup_assigned)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);
       `;
       const values = [
         phone,
@@ -31,6 +44,7 @@ const insertNtidSetup = async (req, res) => {
         yubiKeyPin || null,
         rtposPin || null,
         comments || null,
+        megentau === "Yes" ? 1 : 0, // Added megentau
         id,
       ];
 
@@ -48,6 +62,7 @@ const insertNtidSetup = async (req, res) => {
       if (yubiKeyPin !== undefined) { fieldsToUpdate.push("yubikey_pin = ?"); values.push(yubiKeyPin); }
       if (rtposPin !== undefined) { fieldsToUpdate.push("rtpos_pin = ?"); values.push(rtposPin); }
       if (comments !== undefined) { fieldsToUpdate.push("comments = ?"); values.push(comments); }
+      if (megentau !== undefined) { fieldsToUpdate.push("megentau = ?"); values.push(megentau === "Yes" ? 1 : 0); } // Added megentau
       if (id !== undefined) { fieldsToUpdate.push("last_edited_id = ?"); values.push(id); }
 
       if (fieldsToUpdate.length === 0) {
@@ -81,7 +96,7 @@ const assignNtidSetup = async (req, res) => {
 
   try {
     const checkQuery = `
-      SELECT yubikey_status, ntid_setup_status, ntid_setup_date, idv_status, idv_docu, yubikey_pin, rtpos_pin, comments
+      SELECT yubikey_status, ntid_setup_status, ntid_setup_date, idv_status, idv_docu, yubikey_pin, rtpos_pin, comments, megentau
       FROM ntid_setup 
       WHERE phone = ? AND ntid = ? AND ntid_setup_assigned = 0;
     `;
@@ -93,8 +108,9 @@ const assignNtidSetup = async (req, res) => {
 
     const row = rows[0];
     if (!row.yubikey_status || !row.ntid_setup_status || !row.ntid_setup_date || 
-        !row.idv_status || !row.idv_docu || !row.yubikey_pin || !row.rtpos_pin || !row.comments) {
-      return res.status(400).json({ error: "All NTID setup fields must be filled before assignment." });
+        !row.idv_status || !row.idv_docu || !row.yubikey_pin || !row.rtpos_pin || 
+        !row.comments || row.megentau === null || row.megentau === undefined) { // Added megentau check
+      return res.status(400).json({ error: "All NTID setup fields, including megentau, must be filled before assignment." });
     }
 
     const assignQuery = `

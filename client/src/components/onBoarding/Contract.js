@@ -65,6 +65,15 @@ function Contract() {
       setLoading(false);
     }
   };
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -166,6 +175,8 @@ function Contract() {
           contract_sent_by: "", contract_signed_on: "", backout_status: "select",
           address: false, UploadDocument: false, assigned: false,
         });
+        setAlertMessage(responseData.message);
+            
       }
 
       await fetchData();
