@@ -66,8 +66,12 @@ export function MyProvider({ children }) {
       localStorage.removeItem("userData"); // Example
       // Update auth state
       updateAuth(false, null, null);
+      // setTimeout(() => {
+      //   // Reload the page
+      //   window.location.href = "/login"; 
+      // }, 1000);
       // Redirect to login page (if using React Router)
-      window.location.href = "/login"; // Example
+      // Example
     } catch (error) {
       console.error("Logout failed:", error);
       updateAuth(false, null, null);
