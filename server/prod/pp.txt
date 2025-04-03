@@ -1,1 +1,0 @@
-certbot --nginx -d internal.techno-communications.com -d internalapi.techno-communications.com

@@ -2,6 +2,22 @@ import db from "../dbConnection/db.js";
 import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Helper function to sanitize phone numbers
+const sanitizePhoneNumber = (phone) => {
+  if (!phone) return null;
+  
+  // Remove all non-digit characters
+  let sanitized = phone.replace(/\D/g, '');
+  
+  // Remove country code if present (assuming US numbers for this example)
+  // Adjust this based on your requirements
+  if (sanitized.length > 10) {
+    sanitized = sanitized.slice(-10); // Keep last 10 digits
+  }
+  
+  return sanitized || null;
+};
+
 // Save Contract
 export const saveContract = async (req, res) => {
   const {
@@ -22,14 +38,14 @@ export const saveContract = async (req, res) => {
     address,
     assigned,
   } = req.body;
-  // console.log(req.body);
 
   // Basic input validation
   if (!first_name || !last_name) {
-    return res
-      .status(400)
-      .json({ error: "first_name and last_name are required" });
+    return res.status(400).json({ error: "first_name and last_name are required" });
   }
+
+  // Sanitize phone number
+  const sanitizedPhone = sanitizePhoneNumber(phone);
 
   const query = `
     INSERT INTO contract 
@@ -41,7 +57,7 @@ export const saveContract = async (req, res) => {
   const values = [
     first_name || null,
     last_name || null,
-    phone || null,
+    sanitizedPhone, // Use sanitized phone number
     email || null,
     market || null,
     date_of_joining || null,
@@ -66,9 +82,7 @@ export const saveContract = async (req, res) => {
     });
   } catch (err) {
     console.error("Error saving data:", err.message);
-    res
-      .status(500)
-      .json({ error: "Failed to save data", details: err.message });
+    res.status(500).json({ error: "Failed to save data", details: err.message });
   }
 };
 
@@ -76,10 +90,14 @@ export const saveContract = async (req, res) => {
 export const updateContract = async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
-  console.log(updates);
 
   if (!id) {
     return res.status(400).json({ error: "Contract ID is required" });
+  }
+
+  // Sanitize phone number if it's being updated
+  if (updates.phone) {
+    updates.phone = sanitizePhoneNumber(updates.phone);
   }
 
   const fetchQuery = `SELECT * FROM contract WHERE id = ?`;
@@ -114,9 +132,7 @@ export const updateContract = async (req, res) => {
     const [result] = await db.execute(updateQuery, valuesToUpdate);
 
     if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ error: "Contract not found or no changes applied" });
+      return res.status(404).json({ error: "Contract not found or no changes applied" });
     }
 
     res.status(200).json({
@@ -126,9 +142,7 @@ export const updateContract = async (req, res) => {
     });
   } catch (err) {
     console.error("Error updating contract:", err.message);
-    res
-      .status(500)
-      .json({ error: "Failed to update contract", details: err.message });
+    res.status(500).json({ error: "Failed to update contract", details: err.message });
   }
 };
 

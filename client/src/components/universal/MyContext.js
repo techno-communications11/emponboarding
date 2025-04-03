@@ -56,27 +56,27 @@ export function MyProvider({ children }) {
   };
 
   // Logout function
-  const logout = async () => {
-    try {
-      await fetch(`${process.env.REACT_APP_BASE_URL}/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      // Clear local state or storage
-      localStorage.removeItem("userData"); // Example
-      // Update auth state
-      updateAuth(false, null, null);
-      // setTimeout(() => {
-      //   // Reload the page
-      //   window.location.href = "/login"; 
-      // }, 1000);
-      // Redirect to login page (if using React Router)
-      // Example
-    } catch (error) {
-      console.error("Logout failed:", error);
-      updateAuth(false, null, null);
-    }
-  };
+    const logout = async () => {
+      try {
+        await fetch(`${process.env.REACT_APP_BASE_URL}/logout`, {
+          method: "POST",
+          credentials: "include",
+        });
+        // Clear local state or storage
+        localStorage.removeItem("userData"); // Example
+        // Update auth state
+        updateAuth(false, null, null);
+        // setTimeout(() => {
+        //   // Reload the page
+        //   window.location.href = "/login"; 
+        // }, 1000);
+        // Redirect to login page (if using React Router)
+        // Example
+      } catch (error) {
+        console.error("Logout failed:", error);
+        updateAuth(false, null, null);
+      }
+    };
 
   return (
     <MyContext.Provider value={{ users, addUser, authState, updateAuth, logout }}>

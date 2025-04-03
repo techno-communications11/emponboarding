@@ -7,9 +7,11 @@ const AdminDashboard = () => {
   const [grandTotal, setGrandTotal] = useState({});
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [loading,setLoading]=useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/getadmindata`, {
           method: 'GET',
@@ -55,6 +57,9 @@ const AdminDashboard = () => {
       } catch (error) {
         console.error('Error fetching data:', error);
       }
+       finally{
+        setLoading(false);
+       }
     };
 
     fetchData();
@@ -65,6 +70,14 @@ const AdminDashboard = () => {
     const formattedDate = new Date(date).toLocaleDateString('en-GB', options);
     return formattedDate;
   };
+  
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+        <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="container-fluid mt-2">
@@ -123,6 +136,7 @@ const AdminDashboard = () => {
               <th style={{backgroundColor:"#E10174",color:'white'}}>Passport</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>ID/DL</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>Left</th>
+              <th style={{backgroundColor:"#E10174",color:'white'}}>safety control</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>Address Yes</th>
               <th style={{backgroundColor:"#E10174",color:'white'}}>Address No</th>
             </tr>
@@ -146,6 +160,7 @@ const AdminDashboard = () => {
                 <td>{row.passport || 0}</td>
                 <td>{row.idDl || 0}</td>
                 <td>{row.left || 0}</td>
+                <td>{row.techno_safety_control||0}</td>
                 <td>{row.addressYes || 0}</td>
                 <td>{row.addressNo || 0}</td>
               </tr>
@@ -167,6 +182,7 @@ const AdminDashboard = () => {
               <td>{grandTotal.passport || 0}</td>
               <td>{grandTotal.idDl || 0}</td>
               <td>{grandTotal.left || 0}</td>
+              <td>{grandTotal.techno_safety_control||0}</td>
               <td>{grandTotal.addressYes || 0}</td>
               <td>{grandTotal.addressNo || 0}</td>
             </tr>

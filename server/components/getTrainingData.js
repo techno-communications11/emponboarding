@@ -13,7 +13,8 @@ const getTrainingData = async (req, res) => {
             nc.t_mobile_email, 
             ns.ntid_setup_date,
             ts.training_status,
-            ts.training_completed_date
+            ts.training_completed_date,
+            ts.techno_safety_control
         FROM 
             contract c
         INNER JOIN 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FaEye, FaEyeSlash, FaEdit } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import "./Styles/Register.css";
+import { useMyContext } from "../universal/MyContext";
+import CustomAlert from "../universal/CustomAlert";
 
 const Register = () => {
   const [userData, setUserData] = useState({
@@ -15,48 +16,37 @@ const Register = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [filter, setFilter] = useState({ email: "", username: "", department: "", Technoid: "" });
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(null);
 
-  // Check authentication and admin role
+  const { authState } = useMyContext();
+
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (!response.ok) {
-          throw new Error("Unauthorized");
-        }
-        const data = await response.json();
-        if (data.role !== "Admin") {
-          setError("Only admins can access this page.");
-          navigate("/"); // Redirect non-admins
-        } else {
-          setIsAdmin(true);
-          fetchUsers(); // Fetch users only if admin
-        }
-      } catch (err) {
-        setError("Please log in to access this page.");
-        navigate("/"); // Redirect to login
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuth();
-  }, [navigate]);
+    fetchUsers();
+  }, []);
+
+  // Check permissions early
+  if (!authState.role || authState.role !== "Admin") {
+    return (
+      <div className="container-fluid lite-container">
+        <div className="alert alert-danger lite-alert" role="alert">
+          You do not have permission to access this page.
+        </div>
+      </div>
+    );
+  }
 
   const fetchUsers = async () => {
+    setLoading(true);
+    setError("");
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users`, {
         method: "GET",
-        credentials: "include", // Send HTTP-only cookie
+        credentials: "include",
       });
       const data = await response.json();
       if (response.ok) {
@@ -64,10 +54,13 @@ const Register = () => {
         setFilteredUsers(data);
       } else {
         setError("Failed to fetch users: " + data.message);
+        setShowAlert({ message: "Failed to fetch users: " + data.message, type: "error" });
       }
     } catch (err) {
       setError("Failed to fetch users: " + err.message);
+      setShowAlert({ message: "Failed to fetch users: " + err.message, type: "error" });
     }
+    setLoading(false);
   };
 
   const handleChange = (e) => {
@@ -76,21 +69,23 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     if (userData.password !== userData.confirmPassword) {
       setError("Passwords do not match");
+      setShowAlert({ message: "Passwords do not match", type: "error" });
       return;
     }
+    setRegisterLoading(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // Send HTTP-only cookie
+        credentials: "include",
         body: JSON.stringify(userData),
       });
       const data = await response.json();
       if (response.status === 201) {
-        setSuccess("Registration successful! User added.");
-        setError("");
+        setShowAlert({ message: "Registration successful! User added.", type: "success" });
         setUserData({
           email: "",
           username: "",
@@ -102,10 +97,13 @@ const Register = () => {
         fetchUsers();
       } else {
         setError(data.message || "Registration failed");
+        setShowAlert({ message: data.message || "Registration failed", type: "error" });
       }
     } catch (err) {
       setError("Registration failed: " + err.message);
+      setShowAlert({ message: "Registration failed: " + err.message, type: "error" });
     }
+    setRegisterLoading(false);
   };
 
   const handleUpdateUser = async (e) => {
@@ -114,20 +112,21 @@ const Register = () => {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/${editingUser.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // Send HTTP-only cookie
+        credentials: "include",
         body: JSON.stringify(editingUser),
       });
       const data = await response.json();
       if (response.ok) {
-        setSuccess("User updated successfully");
-        setError("");
+        setShowAlert({ message: "User updated successfully", type: "success" });
         fetchUsers();
         setEditingUser(null);
       } else {
         setError(data.message || "Failed to update user");
+        setShowAlert({ message: data.message || "Failed to update user", type: "error" });
       }
     } catch (err) {
       setError("Failed to update user: " + err.message);
+      setShowAlert({ message: "Failed to update user: " + err.message, type: "error" });
     }
   };
 
@@ -156,19 +155,22 @@ const Register = () => {
   };
 
   if (loading) {
-    return <div className="text-center p-5">Loading...</div>;
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+        <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+      </div>
+    );
   }
-
-  if (!isAdmin) {
-    return null; // Redirect handled in useEffect
-  }
+  
 
   return (
     <div className="container-fluid lite-container">
-      {success && (
-        <div className="alert alert-success lite-alert" role="alert">
-          {success}
-        </div>
+     {showAlert && (
+        <CustomAlert
+          message={showAlert.message}
+          type={showAlert.type}
+          onClose={() => setShowAlert(null)}
+        />
       )}
       {error && (
         <div className="alert alert-danger lite-alert" role="alert">
@@ -277,7 +279,11 @@ const Register = () => {
                 </div>
               </div>
               <button type="submit" className="btn lite-btn-primary mt-3 w-100 text-white fw-bolder">
-                Register
+                {registerLoading ? (
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                ) : (
+                  <span>Register</span>
+                )}
               </button>
             </form>
           </div>

@@ -124,7 +124,7 @@ const assignNtidSetup = async (req, res) => {
 
     if (result.affectedRows > 0) {
       // Fetch NTID Setup Team Emails
-      const emailQuery = `SELECT email FROM users WHERE department = 'Ntid Setup team'`;
+      const emailQuery = `SELECT email FROM users WHERE department = 'Training Team'`;
       const [emailRows] = await db.execute(emailQuery);
       const teamEmails = emailRows.map(user => user.email);
       console.log("Team Emails:", teamEmails);

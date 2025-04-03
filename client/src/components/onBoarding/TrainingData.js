@@ -97,7 +97,7 @@ const TrainingData = () => {
     }
 
     const rowData = updateData[phone] || {};
-    if (!rowData.TrainingStatus || !rowData.TrainingCompletedDate) {
+    if (!rowData.TrainingStatus || !rowData.TrainingCompletedDate ||!rowData.techno_safety_control) {
       setAlertMessage("Training Status and Training Completed Date are required.");
       return;
     }
@@ -107,7 +107,7 @@ const TrainingData = () => {
       const existingRow = trainingData.find((row) => row.phone === phone);
       if (
         existingRow.training_status === rowData.TrainingStatus &&
-        existingRow.training_completed_date === rowData.TrainingCompletedDate
+        existingRow.training_completed_date === rowData.TrainingCompletedDate&& existingRow.techno_safety_control
       ) {
         setAlertMessage("No changes detected.");
         return;
@@ -133,6 +133,7 @@ const TrainingData = () => {
                 ...row,
                 training_status: rowData.TrainingStatus,
                 training_completed_date: rowData.TrainingCompletedDate,
+                techno_safety_control:rowData.techno_safety_control,
               }
             : row
         )
@@ -189,7 +190,7 @@ const TrainingData = () => {
             <div className="table-responsive">
               <table className="table table-hover table-bordered align-middle">
                 <thead className="custom-header">
-                  <tr>
+                  <tr className="text-nowrap text-center">
                     <th style={{ backgroundColor: "#E10174", color: "white" }}>
                       <UserCircle className="me-1" size={18} /> First Name
                     </th>
@@ -222,6 +223,9 @@ const TrainingData = () => {
                     </th>
                     <th style={{ backgroundColor: "#E10174", color: "white" }}>
                       <Calendar className="me-1" size={18} /> Training Completed
+                    </th>
+                    <th style={{ backgroundColor: "#E10174", color: "white" }}>
+                      Techno safety control
                     </th>
                     <th style={{ backgroundColor: "#E10174", color: "white" }}>Action</th>
                   </tr>
@@ -266,6 +270,24 @@ const TrainingData = () => {
                               value={updateData[data.phone]?.TrainingCompletedDate || ""}
                               onChange={(e) => handleInputChange(e, data.phone)}
                             />
+                          )}
+                        </td>
+                        <td className="text-nowrap">
+                          {data.techno_safety_control!==null ? (
+                            <span className="badge bg-info text-dark">
+                              {data.techno_safety_control===0?"No":"yes"}
+                            </span>
+                          ) : (
+                            <select
+                              className="form-select form-select-sm"
+                              name="techno_safety_control"
+                              value={updateData[data.phone]?.techno_safety_control || ""}
+                              onChange={(e) => handleInputChange(e, data.phone)}
+                            >
+                              <option value="">Select</option>
+                              <option value="Yes">Yes</option>
+                              <option value="No">No</option>
+                            </select>
                           )}
                         </td>
                         <td className="text-nowrap">
