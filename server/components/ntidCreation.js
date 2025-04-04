@@ -133,7 +133,8 @@ const assignNtid = async (req, res) => {
         </ul>
         <p>Please take the necessary actions.</p>
         <p>Best regards,</p>
-        <p>Your System</p>
+        <a href="https://internal.techno-communications.com/" style="padding:10px 20px;background-color:#007BFF;color:white;border-radius:5px;text-decoration:none;">View Details</a>
+        
       `;
       const emailSubject = `NTID Assignment Notification for ${row.ntid}`;
 

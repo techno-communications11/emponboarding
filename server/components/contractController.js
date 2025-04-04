@@ -244,8 +244,7 @@ export const assignContract = async (req, res) => {
       <p>Thank you for your cooperation.</p>
       <p>Best regards,</p>
       <p>Your Team</p>
-      <a href="https://yourapp.com" style="padding:10px 20px;background-color:#007BFF;color:white;border-radius:5px;text-decoration:none;">View Details</a>
-    `;
+      <a href="https://internal.techno-communications.com/" style="padding:10px 20px;background-color:#007BFF;color:white;border-radius:5px;text-decoration:none;">View Details</a>    `;
 
     // Send emails to all recipients
     await Promise.all(

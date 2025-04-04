@@ -44,6 +44,7 @@ const createTicket = async (req, res) => {
       <p><strong>Description:</strong> ${description}</p>
       <p><strong>Priority:</strong> ${priority}</p>
       <p>Please review this ticket.</p>
+      <a href="https://internal.techno-communications.com/" style="padding:10px 20px;background-color:#007BFF;color:white;border-radius:5px;text-decoration:none;">View Details</a>
     `;
 
     await resend.emails.send({
