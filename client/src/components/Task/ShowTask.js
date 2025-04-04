@@ -22,29 +22,14 @@ function ShowTask() {
   const [role, setRole] = useState(null);
   const [userId, setUserId] = useState(null);
   const [alert, setAlert] = useState("");
+  const { authState } = useMyContext();
 
   // Fetch user data from /users/me
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        console.log(response,'Users')
-        if (!response.ok) {
-          throw new Error("Failed to authenticate. Please log in.");
-        }
-        const data = await response.json();
-        setRole(data.role);
-        setUserId(data.id);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError(error.message);
-      }
-    };
-    fetchUserData();
-  }, []);
+    setRole(authState.role);
+    setUserId(authState.userId);
+  }, [authState.userId, authState.role]);
+  
 
   // Fetch tasks once user data is available
   useEffect(() => {
@@ -83,7 +68,7 @@ function ShowTask() {
           });
         }
 
-        console.log("Filtered tasks:", finalTasks); // Debug log
+        // console.log("Filtered tasks:", finalTasks); // Debug log
         setTasks(finalTasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -147,9 +132,8 @@ function ShowTask() {
 
   if (loading) {
     return (
-      <div className="jira-loading">
-        <FaSpinner className="fa-spin text-primary" size={40} />
-        <p>Loading tasks...</p>
+      <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+        <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
       </div>
     );
   }

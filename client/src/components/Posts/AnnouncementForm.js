@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMyContext } from "../universal/MyContext";
 
 function AnnouncementForm() {
   const [title, setTitle] = useState("");
@@ -11,36 +11,14 @@ function AnnouncementForm() {
   const [success, setSuccess] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const {authState} = useMyContext();
+  
+   useEffect(() => {
+    setUserId(authState.userId);
+    setLoading(false);
+  }, []);
 
-  // Fetch user data from /users/me
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (!response.ok) {
-          throw new Error("Failed to authenticate. Please log in.");
-        }
-        const data = await response.json();
-        if (data.role !== "Admin") {
-          setError("Only admins can create announcements.");
-          navigate("/"); // Redirect non-admins
-        } else {
-          setUserId(data.id);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError(error.message);
-        navigate("/"); // Redirect to login
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserData();
-  }, [navigate]);
+ 
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -101,10 +79,8 @@ function AnnouncementForm() {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+      <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+        <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
       </div>
     );
   }
@@ -156,11 +132,11 @@ function AnnouncementForm() {
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             >
-              <option value="none">No Filter</option>
-              <option value="grayscale">Grayscale</option>
-              <option value="sepia">Sepia</option>
-              <option value="brightness">Brightness</option>
-              <option value="contrast">Contrast</option>
+              {["none", "grayscale", "sepia", "brightness", "contrast"].map((f) => (
+                <option key={f} value={f}>
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </option>
+              ))}
             </select>
           </div>
         )}

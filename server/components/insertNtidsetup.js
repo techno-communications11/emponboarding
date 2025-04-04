@@ -88,81 +88,82 @@ const insertNtidSetup = async (req, res) => {
 // Assign NTID Setup (Toggle ntid_setup_assigned to 1)
 const assignNtidSetup = async (req, res) => {
   const { phone, ntid, id } = req.body;
-  console.log("Request Body for Assign:", req.body);
+  console.log("Request Body:", JSON.stringify(req.body, null, 2));
 
   if (!phone || !ntid || !id) {
-    return res.status(400).json({ error: "Phone, NTID, and ID are required." });
+    return res.status(400).json({ 
+      error: "Phone, NTID, and ID are required.",
+      received: { phone, ntid, id }
+    });
   }
 
   try {
-    const checkQuery = `
-      SELECT yubikey_status, ntid_setup_status, ntid_setup_date, idv_status, idv_docu, yubikey_pin, rtpos_pin, comments, megentau
-      FROM ntid_setup 
-      WHERE phone = ? AND ntid = ? AND ntid_setup_assigned = 0;
-    `;
-    const [rows] = await db.execute(checkQuery, [phone, ntid]);
+    const [rows] = await db.execute(
+      `SELECT * FROM ntid_setup 
+       WHERE phone = ? AND ntid = ? AND ntid_setup_assigned = 0`,
+      [phone, ntid]
+    );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: "No unassigned NTID setup record found for the provided phone and NTID." });
+      return res.status(404).json({ 
+        error: "No unassigned record found for the provided phone/NTID.",
+        phone,
+        ntid
+      });
     }
 
     const row = rows[0];
-    if (!row.yubikey_status || !row.ntid_setup_status || !row.ntid_setup_date || 
-        !row.idv_status || !row.idv_docu || !row.yubikey_pin || !row.rtpos_pin || 
-        !row.comments || row.megentau === null || row.megentau === undefined) { // Added megentau check
-      return res.status(400).json({ error: "All NTID setup fields, including megentau, must be filled before assignment." });
+    console.log("Database Record:", JSON.stringify(row, null, 2));
+
+    // Check for null/undefined (allows 0, false, empty string)
+    const requiredFields = {
+      yubikey_status: row.yubikey_status != null,
+      ntid_setup_status: row.ntid_setup_status != null, // Allows 0
+      ntid_setup_date: row.ntid_setup_date,
+      idv_status: row.idv_status != null,
+      idv_docu: row.idv_docu,
+      yubikey_pin: row.yubikey_pin,
+      rtpos_pin: row.rtpos_pin,
+      comments: row.comments,
+      megentau: row.megentau != null,
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([_, isValid]) => !isValid)
+      .map(([field]) => field);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        error: "Incomplete NTID setup record.",
+        missingFields,
+        record: row,
+      });
     }
 
-    const assignQuery = `
-      UPDATE ntid_setup
-      SET ntid_setup_assigned = 1, last_edited_id = ?
-      WHERE phone = ? AND ntid = ? AND ntid_setup_assigned = 0;
-    `;
-    const values = [id, phone, ntid];
+    // Proceed with assignment
+    const [result] = await db.execute(
+      `UPDATE ntid_setup 
+       SET ntid_setup_assigned = 1, last_edited_id = ?
+       WHERE phone = ? AND ntid = ?`,
+      [id, phone, ntid]
+    );
 
-    const [result] = await db.execute(assignQuery, values);
-
-    if (result.affectedRows > 0) {
-      // Fetch NTID Setup Team Emails
-      const emailQuery = `SELECT email FROM users WHERE department = 'Training Team'`;
-      const [emailRows] = await db.execute(emailQuery);
-      const teamEmails = emailRows.map(user => user.email);
-      console.log("Team Emails:", teamEmails);
-
-      if (teamEmails.length > 0) {
-        try {
-          await resend.emails.send({
-            from: "ticketing@techno-communications.com",
-            to: teamEmails,
-            subject: "NTID Setup Assigned",
-            html: `
-              <p>Hello NTID Setup Team,</p>
-              <p>A new NTID setup has been assigned.</p>
-              <p><strong>Phone:</strong> ${phone}</p>
-              <p><strong>NTID:</strong> ${ntid}</p>
-              <p>Please review and complete the process.</p>
-              <p>Best Regards,</p>
-              <p>Your Company</p>
-            `,
-          });
-          console.log("Email sent successfully.");
-        } catch (emailError) {
-          console.error("Error sending email:", emailError);
-          return res.status(500).json({ error: "Failed to send email", details: emailError.message });
-        }
-      } else {
-        console.warn("No NTID Setup Team emails found.");
-      }
-
-      return res.status(200).json({ status: 200, message: "NTID setup assigned successfully" });
-    } else {
-      return res.status(500).json({ error: "Failed to assign NTID setup" });
+    if (result.affectedRows === 0) {
+      return res.status(500).json({ error: "Assignment failed (no rows updated)." });
     }
+
+    return res.status(200).json({ 
+      success: true,
+      message: "NTID setup assigned successfully." 
+    });
 
   } catch (error) {
-    console.error("Error assigning NTID setup:", error);
-    return res.status(500).json({ error: "Failed to assign NTID setup", details: error.message });
-  } 
+    console.error("Server Error:", error);
+    return res.status(500).json({ 
+      error: "Internal server error.",
+      details: error.message 
+    });
+  }
 };
 
 export { insertNtidSetup, assignNtidSetup };

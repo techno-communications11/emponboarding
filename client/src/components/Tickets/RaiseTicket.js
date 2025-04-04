@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Container, Form, Button } from "react-bootstrap";
+import { Container, Form, Button, Spinner } from "react-bootstrap";
 import { FaTicketAlt, FaUser, FaAlignLeft, FaExclamationCircle } from "react-icons/fa";
 import CustomAlert from "../universal/CustomAlert";
-import "./Styles/RaiseTicket.css"; // Custom CSS for Jira-like styling
+import "./Styles/RaiseTicket.css";
+import { useMyContext } from "../universal/MyContext";
 
 function RaiseTicket({ onTicketSubmit }) {
   const [formData, setFormData] = useState({
@@ -11,101 +12,126 @@ function RaiseTicket({ onTicketSubmit }) {
     description: "",
     priority: "Medium",
   });
-  const [alertMessage, setAlertMessage] = useState("");
+  const [alertMessage, setAlertMessage] = useState({ message: "", type: "" });
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const { authState } = useMyContext();
 
-  // Fetch user ID from /users/me on mount
   useEffect(() => {
-    const fetchUserId = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUserId(data.id); // Assuming /users/me returns { id, email, role }
-        } else {
-          setAlertMessage("User not authenticated. Please log in.");
-        }
-      } catch (error) {
-        console.error("Error fetching user ID:", error);
-        setAlertMessage("Failed to load user data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserId();
-  }, []);
+    if (authState?.userId) {
+      setUserId(authState.userId);
+      setLoading(false);
+    } else {
+      setAlertMessage({ 
+        message: "User not authenticated. Please log in.", 
+        type: "error" 
+      });
+      setLoading(false);
+    }
+  }, [authState]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    
     if (!userId) {
-      setAlertMessage("User not authenticated. Please log in.");
+      setAlertMessage({ 
+        message: "User not authenticated. Please log in.", 
+        type: "error" 
+      });
+      setSubmitting(false);
       return;
     }
 
     try {
       const ticketData = {
         employee_id: userId,
-        name: formData.name,
-        title: formData.title,
-        description: formData.description,
+        name: formData.name.trim(),
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         priority: formData.priority,
       };
+
+      // Validate inputs
+      if (!ticketData.name || !ticketData.title || !ticketData.description) {
+        throw new Error("All fields are required");
+      }
 
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/createticket`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // Send HTTP-only cookie for authentication
+        credentials: "include",
         body: JSON.stringify(ticketData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create ticket");
+        throw new Error(data.message || "Failed to create ticket");
       }
 
-      setAlertMessage("Ticket raised successfully!");
+      setAlertMessage({ 
+        message: "Ticket raised successfully!", 
+        type: "success" 
+      });
+      
       setFormData({
         name: "",
         title: "",
         description: "",
         priority: "Medium",
       });
-      if (onTicketSubmit) setTimeout(onTicketSubmit, 2000); // Delay to show alert
+      
+      if (onTicketSubmit) {
+        setTimeout(onTicketSubmit, 2000);
+      }
     } catch (error) {
       console.error("Error submitting ticket:", error);
-      setAlertMessage(error.message || "Failed to raise ticket. Please try again.");
+      setAlertMessage({ 
+        message: error.message || "Failed to raise ticket. Please try again.", 
+        type: "error" 
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (loading) {
-    return <div>Loading...</div>; // Show loading state while fetching user ID
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+        <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+      </div>
+    );
   }
 
   return (
     <Container className="jira-ticket-container">
-      {alertMessage && <CustomAlert message={alertMessage} onClose={() => setAlertMessage("")} />}
-      <form onSubmit={handleSubmit} className="jira-ticket-form">
+      {alertMessage.message && (
+        <CustomAlert 
+          message={alertMessage.message} 
+          type={alertMessage.type} 
+          onClose={() => setAlertMessage({ message: "", type: "" })} 
+        />
+      )}
+      
+      <Form onSubmit={handleSubmit} className="jira-ticket-form">
         <h2 className="jira-form-title">
           <FaTicketAlt className="me-2" /> Raise a Ticket
         </h2>
 
-        {/* User Name */}
-        <div className="jira-form-group">
-          <label className="jira-label">
+        <Form.Group className="jira-form-group mb-3">
+          <Form.Label className="jira-label">
             <FaUser className="me-2" /> User Name
-          </label>
+          </Form.Label>
           <Form.Control
             type="text"
             name="name"
@@ -114,14 +140,14 @@ function RaiseTicket({ onTicketSubmit }) {
             placeholder="Enter your name"
             required
             className="jira-input"
+            disabled={submitting}
           />
-        </div>
+        </Form.Group>
 
-        {/* Ticket Title */}
-        <div className="jira-form-group">
-          <label className="jira-label">
+        <Form.Group className="jira-form-group mb-3">
+          <Form.Label className="jira-label">
             <FaTicketAlt className="me-2" /> Ticket Title
-          </label>
+          </Form.Label>
           <Form.Control
             type="text"
             name="title"
@@ -130,14 +156,14 @@ function RaiseTicket({ onTicketSubmit }) {
             placeholder="Enter ticket title"
             required
             className="jira-input"
+            disabled={submitting}
           />
-        </div>
+        </Form.Group>
 
-        {/* Ticket Description */}
-        <div className="jira-form-group">
-          <label className="jira-label">
+        <Form.Group className="jira-form-group mb-3">
+          <Form.Label className="jira-label">
             <FaAlignLeft className="me-2" /> Description
-          </label>
+          </Form.Label>
           <Form.Control
             as="textarea"
             name="description"
@@ -147,33 +173,46 @@ function RaiseTicket({ onTicketSubmit }) {
             rows={5}
             required
             className="jira-textarea"
+            disabled={submitting}
           />
-        </div>
+        </Form.Group>
 
-        {/* Priority Selection */}
-        <div className="jira-form-group">
-          <label className="jira-label">
+        <Form.Group className="jira-form-group mb-4">
+          <Form.Label className="jira-label">
             <FaExclamationCircle className="me-2" /> Priority
-          </label>
+          </Form.Label>
           <Form.Select
             name="priority"
             value={formData.priority}
             onChange={handleChange}
             required
             className="jira-select"
+            disabled={submitting}
           >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Urgent">Urgent</option>
+            {["Low", "Medium", "High", "Urgent"].map((priority) => (
+              <option key={priority} value={priority}>
+                {priority}
+              </option>
+            ))}
+            
           </Form.Select>
-        </div>
+        </Form.Group>
 
-        {/* Submit Button */}
-        <Button type="submit" className="jira-submit-btn">
-          Submit Ticket
+        <Button 
+          type="submit" 
+          className="jira-submit-btn"
+          disabled={submitting}
+        >
+          {submitting ? (
+            <>
+              <Spinner as="span" size="sm" animation="border" role="status" />
+              <span className="ms-2">Submitting...</span>
+            </>
+          ) : (
+            "Submit Ticket"
+          )}
         </Button>
-      </form>
+      </Form>
     </Container>
   );
 }

@@ -94,10 +94,11 @@ function UserSideNav() {
 
         {/* Display Users */}
         {loading ? (
-          <div className="jira-loading">
-            <FaSpinner className="fa-spin me-2" />
-            Loading users...
-          </div>
+          
+              <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+                <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+              </div>
+           
         ) : error ? (
           <div className="jira-error text-danger text-center">{error}</div>
         ) : filteredUsers.length > 0 ? (

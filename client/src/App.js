@@ -26,7 +26,9 @@ const AppContent = () => {
   const { authState } = useMyContext();
 
   if (authState.loading) {
-    return <div>Loading...</div>;
+    return ( <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+      <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+    </div>);
   }
 
   // Define default redirect routes based on role

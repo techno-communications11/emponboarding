@@ -65,12 +65,11 @@ function Contract() {
       setLoading(false);
     }
   };
+  
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+      <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+        <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
       </div>
     );
   }

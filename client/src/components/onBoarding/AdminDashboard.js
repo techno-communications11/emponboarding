@@ -119,26 +119,11 @@ const AdminDashboard = () => {
           style={{ backgroundColor: '#fff' }}
         >
           <thead className="bg-primary text-white">
-            <tr >
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Market</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>No of Employees Hired</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>No of Employees Backed Out</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Contracts Sent</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Contracts Signed</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Contract Not Req</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Contracts Pending</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>NTID Created</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>NTID SetUp Done</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>NTID Setup Pending</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>megentau status</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>IDV Done</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>IDV Pending</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Passport</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>ID/DL</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Left</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>safety control</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Address Yes</th>
-              <th style={{backgroundColor:"#E10174",color:'white'}}>Address No</th>
+            <tr >{["Market","No of Employees Hired","No of Employees Backed Out","Contracts Sent","Contracts Signed",
+            "Contract Not Req","Contracts Pending","NTID Created","NTID SetUp Done","NTID Setup Pending","MegentaU App status",
+            "IDV Done","IDV Pending","Passport","ID/DL","Left","Safety control","Address Yes","Address No"].map((header, index) => (
+              <th key={index} className="text-center" style={{backgroundColor:"#E10174",color:'white'}}>{header}</th>
+            ))}
             </tr>
           </thead>
           <tbody>

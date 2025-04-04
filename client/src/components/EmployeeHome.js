@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   Form,
   Button,
@@ -23,7 +23,7 @@ import CustomAlert from "./universal/CustomAlert";
 import RaiseTicket from "./Tickets/RaiseTicket";
 import WeeklySchedule from "../components/SheduleComponent/WeeklySchedule";
 import "./EmployeeHome.css"; // Custom CSS for Jira-like styling
-
+import { useMyContext } from "./universal/MyContext";
 const EmployeeHome = () => {
   const [inputValue, setInputValue] = useState("");
   const [submittedData, setSubmittedData] = useState([]);
@@ -35,28 +35,35 @@ const EmployeeHome = () => {
   const [role, setRole] = useState(null);
   const navigate = useNavigate();
 
+  //insted of writring the same code again and again we can use the context api to get the userId and role
+   const { authState } = useMyContext();
+    useEffect(() => {
+    setUserId(authState.userId);
+    setRole(authState.role);
+  }, [authState.userId, authState.role]);
+
   // Fetch user data from /users/me
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (!response.ok) {
-          throw new Error("Failed to authenticate. Please log in.");
-        }
-        const data = await response.json();
-        setUserId(data.id);
-        setRole(data.role);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setAlertMessage(error.message);
-        navigate("/"); // Redirect to login if not authenticated
-      }
-    };
-    fetchUserData();
-  }, [navigate]);
+  // useEffect(() => {
+  //   const fetchUserData = async () => {
+  //     try {
+  //       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+  //         method: "GET",
+  //         credentials: "include", // Send HTTP-only cookie
+  //       });
+  //       if (!response.ok) {
+  //         throw new Error("Failed to authenticate. Please log in.");
+  //       }
+  //       const data = await response.json();
+  //       setUserId(data.id);
+  //       setRole(data.role);
+  //     } catch (error) {
+  //       console.error("Error fetching user data:", error);
+  //       setAlertMessage(error.message);
+  //       navigate("/"); // Redirect to login if not authenticated
+  //     }
+  //   };
+  //   fetchUserData();
+  // }, [navigate]);
 
   // Fetch tasks once user data is available
   useEffect(() => {
@@ -153,7 +160,9 @@ const EmployeeHome = () => {
   const handleTask = () => navigate("/viewtasks");
 
   if (loading && !userId) {
-    return <div className="text-center p-5">Loading...</div>;
+    return ( <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+    <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+  </div>);
   }
 
   return (

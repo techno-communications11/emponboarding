@@ -3,11 +3,24 @@ import xlsx from 'xlsx';
 import fs from 'fs/promises'; // Using fs/promises for better async handling
 
 const parseShiftTimes = (shift) => {
-    if (shift === 'OFF') {
+    if (!shift) {
         return { startTime: null, endTime: null, status: 'OFF' };
     }
-    const [startTime, endTime] = shift.split(' - ');
-    return { startTime, endTime, status: 'WORKING' };
+
+    // Handle special cases
+    if (shift.includes('OFF') || shift.includes('OPEN') || shift.includes('HALF DAY')) {
+        const status = shift.includes('_') ? shift.split('_')[0].trim() : shift.trim();
+        return { startTime: null, endTime: null, status };
+    }
+    
+    // Handle normal shift times
+    const cleanShift = shift.split('_')[0].trim();
+    const [startTime, endTime] = cleanShift.split(' - ');
+    return { 
+        startTime: startTime ? startTime.trim() : null, 
+        endTime: endTime ? endTime.trim() : null, 
+        status: 'WORKING' 
+    };
 };
 
 const Uploadshedule = async (req, res) => {
@@ -18,17 +31,15 @@ const Uploadshedule = async (req, res) => {
     try {
         // Read the uploaded Excel file
         const workbook = xlsx.readFile(req.file.path);
-        const sheetName = workbook.SheetNames[0]; // Assuming data is in the first sheet
+        const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const data = xlsx.utils.sheet_to_json(sheet);
-         console.log(data,'datatt')
 
         // Truncate the table before inserting new data
         await db.execute(`TRUNCATE TABLE employeeschedule`);
 
         // Prepare insertion queries
         for (const row of data) {
-            console.log(row);
             const { ID, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday } = row;
 
             const days = [
@@ -45,7 +56,7 @@ const Uploadshedule = async (req, res) => {
                 const { startTime, endTime, status } = parseShiftTimes(shift);
 
                 await db.execute(
-                    `INSERT INTO employeeschedule (employee_id,  work_date, shift_start, shift_end, shift_status) 
+                    `INSERT INTO employeeschedule (employee_id, work_date, shift_start, shift_end, shift_status) 
                      VALUES (?, ?, ?, ?, ?)`,
                     [ID, day, startTime, endTime, status]
                 );
@@ -63,3 +74,4 @@ const Uploadshedule = async (req, res) => {
 };
 
 export default Uploadshedule;
+

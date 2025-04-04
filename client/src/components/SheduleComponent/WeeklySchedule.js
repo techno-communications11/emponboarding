@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   Col,
   Row,
@@ -8,8 +8,8 @@ import {
 } from "react-bootstrap";
 import { FaCalendarAlt, FaClock, FaUser, FaFilter } from "react-icons/fa";
 import { motion } from "framer-motion";
-import "bootstrap/dist/css/bootstrap.min.css";
-
+import "./Styles/WeeklySchedule.css"; // Custom CSS for modern styling
+import { useMyContext } from "../universal/MyContext";
 const WeeklySchedule = () => {
   const [days, setDays] = useState([]);
   const [name, setName] = useState("");
@@ -19,31 +19,15 @@ const WeeklySchedule = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { authState } = useMyContext();
 
   // Fetch user data from /users/me
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUserid(data.id);
-          setIsAdmin(data.role === "Admin");
-        } else {
-          setError("Failed to authenticate. Please log in.");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError("Error fetching user data: " + error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserData();
-  }, []);
+ useEffect(() => {
+  setUserid(authState.userId);
+  setIsAdmin(authState.role);
+  setLoading(false);
+}, [authState.userId, authState.role]);
+
 
   // Fetch schedule data once userid is available
   useEffect(() => {
@@ -92,9 +76,13 @@ const WeeklySchedule = () => {
       }, {})
     : null;
 
-  if (loading) {
-    return <div className="text-center p-5">Loading...</div>;
-  }
+    if (loading) {
+      return (
+        <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+          <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+        </div>
+      );
+    }
 
   if (error) {
     return <div className="text-center p-5 text-danger">{error}</div>;
@@ -102,89 +90,6 @@ const WeeklySchedule = () => {
 
   return (
     <div className="container-fluid p-4" style={{ minHeight: "auto" }}>
-      <style>
-        {`
-          .sidebar {
-            border-right: 1px solid #e2e8f0;
-            height: auto;
-            position: sticky;
-            top: 16px;
-          }
-          .employee-list-item {
-            cursor: pointer;
-            padding: 12px 16px;
-            transition: all 0.2s ease;
-          }
-          .employee-list-item:hover {
-            background-color: #f1f5f9;
-          }
-          .employee-list-item.active {
-            background-color: #bfdbfe;
-            border-left: 3px solid #2563eb;
-          }
-          .search-input {
-            background-color: #f8f9fa;
-            border: 1px solid #e2e8f0;
-            padding-left: 36px;
-          }
-          .search-input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
-          }
-          .schedule-header {
-            color: #1e293b;
-            font-size: 1.25rem;
-            font-weight: 600;
-          }
-          .day-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 8px 0;
-            transition: transform 0.2s ease;
-          }
-          .day-card:hover {
-            transform: translateX(5px);
-          }
-          .status-badge {
-            font-size: 0.875rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-          }
-          .status-off {
-            background-color: #fee2e2;
-            color: #991b1b;
-          }
-          .status-on {
-            background-color: #d1fae5;
-            color: #065f46;
-          }
-          .add-button {
-            background-color: #2563eb;
-            border: none;
-            transition: transform 0.2s ease;
-          }
-          .add-button:hover {
-            transform: rotate(-5deg) scale(1.05);
-          }
-          @media (max-width: 768px) {
-            .sidebar {
-              border-right: none;
-              border-bottom: 1px solid #e2e8f0;
-              height: auto;
-              position: static;
-              margin-bottom: 16px;
-            }
-            .employee-list-item {
-              padding: 8px 12px;
-            }
-            .day-card {
-              padding: 12px;
-            }
-          }
-        `}
-      </style>
-
       <Row className="g-4">
         {isAdmin && (
           <Col xs={12} md={3} lg={2} className="sidebar">

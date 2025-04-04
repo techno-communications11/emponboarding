@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Form, Button, Card, Row, Col, Badge } from "react-bootstrap";
 import { FaCalendarAlt, FaTasks, FaShareAlt, FaCog } from "react-icons/fa";
 import { CiMail } from "react-icons/ci";
@@ -8,6 +8,7 @@ import { TfiAnnouncement } from "react-icons/tfi";
 import { useNavigate } from "react-router-dom";
 import CustomAlert from "../universal/CustomAlert";
 import "./Styles/DailyUpdates.css"; // Custom CSS for Jira-like styling
+import { useMyContext } from "../universal/MyContext";
 
 const DailyUpdates = () => {
   const [submittedData, setSubmittedData] = useState([]);
@@ -18,28 +19,34 @@ const DailyUpdates = () => {
   const [role, setRole] = useState(null);
   const navigate = useNavigate();
 
+  const { authState } = useMyContext();
+useEffect(() => {
+    setRole(authState.role);
+    setUserId(authState.userId);
+  }, [authState.userId, authState.role]);
+
   // Fetch user data from /users/me
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (!response.ok) {
-          throw new Error("Failed to authenticate. Please log in.");
-        }
-        const data = await response.json();
-        setUserId(data.id);
-        setRole(data.role);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setAlertMessage(error.message);
-        navigate("/"); // Redirect to login if not authenticated
-      }
-    };
-    fetchUserData();
-  }, [navigate]);
+  // useEffect(() => {
+  //   const fetchUserData = async () => {
+  //     try {
+  //       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+  //         method: "GET",
+  //         credentials: "include", // Send HTTP-only cookie
+  //       });
+  //       if (!response.ok) {
+  //         throw new Error("Failed to authenticate. Please log in.");
+  //       }
+  //       const data = await response.json();
+  //       setUserId(data.id);
+  //       setRole(data.role);
+  //     } catch (error) {
+  //       console.error("Error fetching user data:", error);
+  //       setAlertMessage(error.message);
+  //       navigate("/"); // Redirect to login if not authenticated
+  //     }
+  //   };
+  //   fetchUserData();
+  // }, [navigate]);
 
   // Fetch tasks once user data is available
   useEffect(() => {

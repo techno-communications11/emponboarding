@@ -1,36 +1,19 @@
 import React, { useEffect, useState } from "react";
 import "./Styles/Announcement.css";
 import { SlDislike, SlLike } from "react-icons/sl";
-import { useNavigate } from "react-router-dom";
+import { useMyContext } from "../universal/MyContext";
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
-  const navigate = useNavigate();
+  const { authState } = useMyContext();
 
   // Fetch user data from /users/me
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (!response.ok) {
-          throw new Error("Failed to authenticate. Please log in.");
-        }
-        const data = await response.json();
-        setUserId(data.id);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError(error.message);
-        navigate("/"); // Redirect to login if not authenticated
-      }
-    };
-    fetchUserData();
-  }, [navigate]);
+    setUserId(authState.userId);
+  }, [authState.userId]);
 
   // Fetch announcements once user data is available
   useEffect(() => {

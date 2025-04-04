@@ -17,6 +17,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import CustomAlert from "../universal/CustomAlert";
+import { useMyContext } from "../universal/MyContext";
 
 const NtidCreation = () => {
   const [mergedRows, setMergedRows] = useState([]);
@@ -26,35 +27,41 @@ const NtidCreation = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [userId, setUserId] = useState(null);
   const [role, setRole] = useState(null);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
+const { authState } = useMyContext();
+
 
   // Fetch user data from /users/me
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-          method: "GET",
-          credentials: "include", // Send HTTP-only cookie
-        });
-        if (!response.ok) {
-          throw new Error("Failed to authenticate. Please log in.");
-        }
-        const data = await response.json();
-        if (data.role !== "Ntid Creation Team") {
-          setAlertMessage("Only NTID Creation Team members can access this page.");
-          navigate("/"); // Redirect unauthorized roles
-        } else {
-          setUserId(data.id);
-          setRole(data.role);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setAlertMessage(error.message);
-        navigate("/"); // Redirect to login
-      }
-    };
-    fetchUserData();
-  }, [navigate]);
+    setRole(authState.role);
+    setUserId(authState.userId);
+  }, [authState.userId, authState.role]);
+  // useEffect(() => {
+  //   const fetchUserData = async () => {
+  //     try {
+  //       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+  //         method: "GET",
+  //         credentials: "include", // Send HTTP-only cookie
+  //       });
+  //       if (!response.ok) {
+  //         throw new Error("Failed to authenticate. Please log in.");
+  //       }
+  //       const data = await response.json();
+  //       if (data.role !== "Ntid Creation Team") {
+  //         setAlertMessage("Only NTID Creation Team members can access this page.");
+  //         navigate("/"); // Redirect unauthorized roles
+  //       } else {
+  //         setUserId(data.id);
+  //         setRole(data.role);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching user data:", error);
+  //       setAlertMessage(error.message);
+  //       navigate("/"); // Redirect to login
+  //     }
+  //   };
+  //   fetchUserData();
+  // }, [navigate]);
 
   // Fetch data once user is authenticated
   useEffect(() => {
@@ -244,10 +251,12 @@ const NtidCreation = () => {
         </div>
         <div className="card-body">
           {isLoading ? (
-            <div className="text-center py-4">
-              <Loader className="me-2 animate-spin" size={24} />
-              <span>Loading data...</span>
-            </div>
+              
+                <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+                  <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                </div>
+              
+            
           ) : (
             <div className="table-responsive">
               <table className="table table-hover table-bordered align-middle" style={{ width: "100%" }}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import {
   FaUser,
   FaPhone,
@@ -22,6 +22,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import CustomAlert from "../universal/CustomAlert";
+import { useMyContext } from "../universal/MyContext";
 
 function NtidSetup() {
   const [data, setData] = useState([]);
@@ -31,32 +32,39 @@ function NtidSetup() {
   const [alertMessage, setAlertMessage] = useState("");
   const [userId, setUserId] = useState(null);
   const [role, setRole] = useState(null);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
+
+  const { authState } = useMyContext();
+  useEffect(() => {
+    setRole(authState.role);
+
+    setUserId(authState.userId);
+  }, [authState.userId, authState.role]);
 
   // Fetch user data
-  const fetchUserData = useCallback(async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error("Failed to authenticate. Please log in.");
-      }
-      const data = await response.json();
-      if (data.role !== "Ntid Setup team") {
-        setAlertMessage("Only Ntid Setup team members::$_ can access this page.");
-        navigate("/");
-      } else {
-        setUserId(data.id);
-        setRole(data.role);
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      setAlertMessage(error.message);
-      navigate("/");
-    }
-  }, [navigate]);
+  // const fetchUserData = useCallback(async () => {
+  //   try {
+  //     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/users/me`, {
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error("Failed to authenticate. Please log in.");
+  //     }
+  //     const data = await response.json();
+  //     if (data.role !== "Ntid Setup team") {
+  //       setAlertMessage("Only Ntid Setup team members::$_ can access this page.");
+  //       navigate("/");
+  //     } else {
+  //       setUserId(data.id);
+  //       setRole(data.role);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching user data:", error);
+  //     setAlertMessage(error.message);
+  //     navigate("/");
+  //   }
+  // }, [navigate]);
 
   // Fetch NTID setup data
   const getData = useCallback(async () => {
@@ -82,9 +90,9 @@ function NtidSetup() {
     }
   }, [userId, role]);
 
-  useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
+  // useEffect(() => {
+  //   fetchUserData();
+  // }, [fetchUserData]);
 
   useEffect(() => {
     getData();
@@ -282,15 +290,18 @@ function NtidSetup() {
         </div>
         <div className="card-body">
           {isLoading ? (
-            <div className="text-center py-4">
-              <FaSpinner className="me-2 fa-spin" />
-              <span>Loading data...</span>
-            </div>
+          
+              <div className="d-flex justify-content-center align-items-center vh-100 w-100">
+                <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+              </div>
+            
+          
           ) : (
             <div className="table-responsive">
               <table className="table table-hover table-bordered align-middle">
                 <thead>
                   <tr className="text-nowrap">
+                    
                     <th style={{ backgroundColor: "#E10174", color: "white" }}><FaUser className="me-1" /> First Name</th>
                     <th style={{ backgroundColor: "#E10174", color: "white" }}><FaUser className="me-1" /> Last Name</th>
                     <th style={{ backgroundColor: "#E10174", color: "white" }}><FaPhone className="me-1" /> Phone</th>
